@@ -1,0 +1,15 @@
+require('ts-node/register'); // This enables TypeScript support
+
+// .sequelizerc
+// const path = require('path');
+const { resolve } = require('path');
+
+module.exports = {
+  // config: resolve('dist/config/sequelize-config.js'),
+  config: resolve('dist/config/config.js'),
+  'models-path': resolve('src/models'),
+  // 'seeders-path': resolve('dist/seeders'),
+  'seeders-path': resolve('src/seeders'),
+  // 'migrations-path': resolve('dist/migrations'),
+  'migrations-path': resolve('src/migrations'),
+};
