@@ -11,7 +11,7 @@ const router = Router();
 
 router.get('', getAllQuotes);
 router.get('/:id', getQuoteById);
-router.get('', createQuote);
+router.post('', createQuote);
 
 
 

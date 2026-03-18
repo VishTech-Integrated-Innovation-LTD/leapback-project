@@ -8,6 +8,12 @@ import { Op } from 'sequelize';
 import sequelize from '../db';
 // Importing the utility that generates sequential quote numbers e.g. QT-024, QT-025
 import { nextQuoteNumber } from '../utils/numbering';
+// Importing PDF generation services
+import { generatePDF } from '../services/pdf.service';
+import { sendQuoteEmail } from '../services/email.service';
+
+
+
 
 
 // ==================================================================================
@@ -247,8 +253,6 @@ const calculateTotals = (subtotal: number, vatRate: number | null) => {
 };
 
 
-
-
 // ==================================================================================
 // @desc   CREATE QUOTE
 // @route  GET /quotes
@@ -307,7 +311,9 @@ const quote = await Quote.create(
   {
     quoteNumber,                  // Generated quote number (e.g. QT-001)
     clientId,                     // The client this quote belongs to
-    createdBy: (req as any).user?.id, // ID of logged-in user (set by auth middleware)
+    // createdBy: (req as any).user?.id, // ID of logged-in user (set by auth middleware)
+// NEW - Hardcode a user ID for testing
+createdBy: "4844f879-d915-4bf4-aaac-d3edd2a81b45",
 
     status,                       // Current quote status (draft, pending, etc.)
     subtotal,                     // Sum of all line item totals before tax/discount
@@ -357,12 +363,140 @@ await QuoteItem.bulkCreate(
 // ------------------------------------------------------------------------------------
 await transaction.commit();
 
+
+if (submit) {
+    try {
+        const savedItems = await QuoteItem.findAll({ 
+            where: { quoteId: quote.id } 
+        });
+
+        console.log("=== Starting PDF Generation ===");
+        console.log("Quote Number:", quote.quoteNumber);
+        console.log("Client Email:", client.email);
+        console.log("Items Count:", savedItems.length);
+
+       const pdfPath = await generatePDF({
+    type: 'quote',
+    refNumber: quote.quoteNumber,
+    client: {
+        clientName:    client.clientName,
+        contactPerson: client.contactPerson,
+        email:         client.email,
+        phone:         client.phone ?? null,
+    },
+    items: savedItems.map((i: any) => ({
+        itemName:  i.itemName,
+        itemType:  i.itemType,
+        quantity:  Number(i.quantity),
+        unitPrice: Number(i.unitPrice),
+        lineTotal: Number(i.lineTotal),
+    })),
+    subtotal:   Number(quote.subtotal),
+    vatRate:    quote.vatRate ? Number(quote.vatRate) : null,
+    vatAmount:  quote.vatAmount ? Number(quote.vatAmount) : null,
+    grandTotal: Number(quote.grandTotal),
+    issueDate:  new Date().toLocaleDateString('en-NG'),
+    status:     'pending',
+});
+
+      // Save the PDF path and mark sentAt on the quote record
+        await quote.update({ pdfPath, sentAt: new Date() });
+
+        console.log("PDF Generated Successfully at:", pdfPath);
+
+    // Send the quote PDF to the client via email - fire and forget
+      // The quote is already saved so an email failure won't affect the response        
+sendQuoteEmail({
+        to:          client.email,
+        clientName:  client.clientName,
+        quoteNumber: quote.quoteNumber,
+        pdfPath,
+        grandTotal:  Number(quote.grandTotal),
+      }).catch((err: Error) => console.error('Quote email failed:', err.message));
+        
+      
+      return res.status(201).json({
+            message: 'Quote submitted, PDF generated, and email queued successfully',
+            quote: { ...quote.toJSON(), pdfPath }
+        });
+
+    } catch (pdfOrEmailError: any) {
+        console.error("=== PDF GENERATION / EMAIL PROCESS FAILED ===");
+        console.error("Error Name:", pdfOrEmailError.name);
+        console.error("Error Message:", pdfOrEmailError.message);
+        console.error("Full Error:", pdfOrEmailError);
+        console.error("Stack Trace:", pdfOrEmailError.stack);
+
+        return res.status(201).json({
+            message: 'Quote saved successfully but PDF/email generation failed',
+            quote: {
+                id: quote.id,
+                quoteNumber: quote.quoteNumber,
+                status: quote.status,
+                pdfPath: null
+            },
+            pdfOrEmailError: pdfOrEmailError.message   // This will now show in Postman
+        });
+    }
+}
+
+
+
+
     // If submit is true, generate the PDF and email it to the client
     // This runs after commit so the quote is fully saved before PDF generation starts
-    if (submit) {
-        const savedItems = await QuoteItem.findAll({ where: { quoteId: quote.id } });
-    }
+//     if (submit) {
+//         const savedItems = await QuoteItem.findAll({ where: { quoteId: quote.id } });
+
+//         const pdfPath = await generatePDF({
+//         type:      'quote',
+//         refNumber: quote.quoteNumber,
+//         client: {
+//           clientName:    client.clientName,
+//           contactPerson: client.contactPerson ?? null,
+//           email:         client.email,
+//           phone:         client.phone ?? null,
+//         },
+//         items: savedItems.map((i: any) => ({
+//           itemName:  i.itemName,
+//           itemType:  i.itemType,
+//           quantity:  Number(i.quantity),
+//           unitPrice: Number(i.unitPrice),
+//           lineTotal: Number(i.lineTotal),
+//         })),
+//         subtotal:   Number(quote.subtotal),
+//         vatRate:    quote.vatRate    ? Number(quote.vatRate)   : null,
+//         vatAmount:  quote.vatAmount  ? Number(quote.vatAmount) : null,
+//         grandTotal: Number(quote.grandTotal),
+//         issueDate:  new Date().toLocaleDateString('en-NG'),
+//         status:     'pending',
+//       });
+
+//       // Save the PDF path and mark sentAt on the quote record
+//       await quote.update({ pdfPath, sentAt: new Date() });
+
+// res.status(201).json({
+//       message: submit
+//         ? 'Quote submitted and pdf generated successfully'
+//         : 'Quote saved as draft successfully',
+//       quote: {
+//         id:          quote.id,
+//         quoteNumber: quote.quoteNumber,
+//         status:      quote.status,
+//         subtotal:    quote.subtotal,
+//         vatRate:     quote.vatRate,
+//         vatAmount:   quote.vatAmount,
+//         grandTotal:  quote.grandTotal,
+//         clientId:    quote.clientId,
+//         // createdAt:   quote.createdAt,
+//       },
+//     });
+
+//     }
+
     } catch (error) {
+        // Roll back the transaction if anything went wrong
+    await transaction.rollback();
         console.error(error);
         res.status(500).json({ message: "Error creating quote.." });
     }

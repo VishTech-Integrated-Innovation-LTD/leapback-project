@@ -30,6 +30,8 @@ app.use(helmet());
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import quoteRoutes from './routes/quote.routes';
+import clientRoutes from './routes/client.routes';
+import inventoryRoutes from './routes/inventory.routes';
 
 
 
@@ -66,6 +68,8 @@ app.use(morgan('dev'));
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
 app.use('/quotes', quoteRoutes)
+app.use('/clients', clientRoutes)
+app.use('/inventory', inventoryRoutes)
 
 
 
