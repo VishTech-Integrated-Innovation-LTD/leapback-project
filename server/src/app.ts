@@ -32,6 +32,7 @@ import userRoutes from './routes/user.routes';
 import quoteRoutes from './routes/quote.routes';
 import clientRoutes from './routes/client.routes';
 import inventoryRoutes from './routes/inventory.routes';
+import invoiceRoutes from './routes/invoice.routes';
 
 
 
@@ -70,6 +71,7 @@ app.use('/users', userRoutes)
 app.use('/quotes', quoteRoutes)
 app.use('/clients', clientRoutes)
 app.use('/inventory', inventoryRoutes)
+app.use('/invoice', invoiceRoutes)
 
 
 

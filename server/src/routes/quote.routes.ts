@@ -4,7 +4,10 @@ import { Router } from "express";
 import {
     getAllQuotes,
     getQuoteById,
-    createQuote
+    createQuote,
+    updateQuote,
+    submitQuote,
+    updateQuoteStatus
 } from '../controllers/quote.controller'
 
 const router = Router();
@@ -12,6 +15,10 @@ const router = Router();
 router.get('', getAllQuotes);
 router.get('/:id', getQuoteById);
 router.post('', createQuote);
+router.put('/:id', updateQuote);
+router.patch('/:id/submit', submitQuote);
+router.patch('/:id/status', updateQuoteStatus);
+
 
 
 
