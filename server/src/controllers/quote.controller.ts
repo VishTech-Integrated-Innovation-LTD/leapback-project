@@ -311,9 +311,9 @@ export const createQuote = async (req: Request, res: Response) => {
             {
                 quoteNumber,                  // Generated quote number (e.g. QT-001)
                 clientId,                     // The client this quote belongs to
-                // createdBy: (req as any).user?.id, // ID of logged-in user (set by auth middleware)
+                createdBy: (req as any).user?.id, // ID of logged-in user (set by auth middleware)
                 // NEW - Hardcode a user ID for testing
-                createdBy: "4844f879-d915-4bf4-aaac-d3edd2a81b45",
+                // createdBy: "4844f879-d915-4bf4-aaac-d3edd2a81b45",
 
                 status,                       // Current quote status (draft, pending, etc.)
                 subtotal,                     // Sum of all line item totals before tax/discount

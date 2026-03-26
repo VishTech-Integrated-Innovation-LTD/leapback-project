@@ -2,12 +2,14 @@ import { Router } from "express";
 
 // Importing APIs handlers/controllers
 import {
-    getAllInvoice
+    getAllInvoice,
+    getInvoiceById
 } from '../controllers/invoice.controller'
 
 const router = Router();
 
 router.get('', getAllInvoice);
+router.get('/:id', getInvoiceById);
 
 
 
