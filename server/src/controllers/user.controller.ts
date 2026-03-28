@@ -1,5 +1,5 @@
-// Importing Request, Response from express for typing the controller functions
-import { Request, Response } from 'express';
+// Importing Request, Response, NextFunction from express for typing the controller functions
+import { Request, Response, NextFunction } from 'express';
 // Importing the User model to interact with the users table in the database
 import { User } from '../models';
 // import User from '../models/user.model';
@@ -16,7 +16,7 @@ import bcrypt from 'bcrypt';
 // @access Private(only logged in users)
 // Returns all staff members (used to populate the staff table on the Settings page)
 // ===================================================================================
-export const getAllUsers = async (req: Request, res: Response) => {
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Fetch all users, excluding the password field from the response
         const users = await User.findAll({
@@ -30,8 +30,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
             users
         })
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error retrieving users" });
+        next(error);
     }
 }
 
@@ -44,7 +43,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Returns a single staff member's details by their UUID
 // ===================================================================================
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
 
@@ -70,8 +69,7 @@ export const getUserById = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error retrieving user by id" });
+        next(error);
     }
 }
 
@@ -84,7 +82,7 @@ export const getUserById = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Permanently removes a staff member from the database
 // ===================================================================================
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { name, email, password, isActive } = req.body;
@@ -146,8 +144,7 @@ export const updateUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error updating user details" });
+        next(error);
     }
 }
 
@@ -159,7 +156,7 @@ export const updateUser = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Permanently removes a staff member from the database
 // ===================================================================================
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
 
@@ -186,7 +183,6 @@ export const deleteUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error deleting user." });
+        next(error);
     }
 }

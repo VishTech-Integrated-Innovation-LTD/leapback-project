@@ -1,5 +1,5 @@
-// Importing Request, Response from express for typing the controller functions
-import { Request, Response } from 'express';
+// Importing Request, Response, NextFunction from express for typing the controller functions
+import { Request, Response, NextFunction } from 'express';
 // Importing the User model to interact with the users table in the database
 import { User } from '../models';
 // import User  from '../models/user.model';
@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken';
 // @access Public
 // Can be triggered by the "+ Add Staff Member" button on the Settings page
 // ============================================================================
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { name, email, password } = req.body;
 
@@ -67,8 +67,7 @@ export const registerUser = async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error creating user" });
+        next(error);
     }
 }
 
@@ -81,7 +80,7 @@ export const registerUser = async (req: Request, res: Response) => {
 // @access Public
 // Triggered by the "Sign In" button on the login page
 // ============================================================================
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body;
 
@@ -134,7 +133,6 @@ export const loginUser = async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error logging in user" });
+        next(error);
     }
 }

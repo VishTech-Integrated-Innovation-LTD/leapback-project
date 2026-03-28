@@ -1,5 +1,5 @@
-// Importing Request, Response from express for typing the controller functions
-import { Request, Response } from 'express';
+// Importing Request, Response, NextFunction from express for typing the controller functions
+import { Request, Response, NextFunction } from 'express';
 import { Client, Invoice, Quote } from '../models';
 // Importing Op from sequelize for case-insensitive search
 import { Op } from 'sequelize';
@@ -17,7 +17,7 @@ import { Op } from 'sequelize';
 // Triggered by the "+ Add Client" button on the Client Records page
 // Body: { clientName, email, contactPerson?, phone?, address? }
 // ===================================================================================
-export const createClient = async (req: Request, res: Response) => {
+export const createClient = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { clientName, email, contactPerson, phone, address } = req.body;
 
@@ -50,8 +50,7 @@ export const createClient = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating client.." });
+    next(error);
   }
 }
 
@@ -65,7 +64,7 @@ export const createClient = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Returns all clients - populates the Client Records page in the prototype
 // ===================================================================================
-export const getAllClients = async (req: Request, res: Response) => {
+export const getAllClients = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search } = req.query as { search?: string }
 
@@ -89,8 +88,7 @@ export const getAllClients = async (req: Request, res: Response) => {
       clients,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching clients records.." });
+    next(error);
   }
 }
 
@@ -105,7 +103,7 @@ export const getAllClients = async (req: Request, res: Response) => {
 // Populates the client detail panel in the prototype - shows Total Quotes,
 // Invoices, Total Spend, and the Quote & Invoice History table
 // ===================================================================================
-export const getClientById = async (req: Request, res: Response) => {
+export const getClientById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -152,8 +150,7 @@ export const getClientById = async (req: Request, res: Response) => {
       invoices,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching client records by id..." });
+    next(error);
   }
 }
 
@@ -168,7 +165,7 @@ export const getClientById = async (req: Request, res: Response) => {
 // Triggered by editing a client record on the Client Records page
 // Body: { clientName?, email?, contactPerson?, phone?, address? }
 // ===================================================================================
-export const updateClient = async (req: Request, res: Response) => {
+export const updateClient = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { clientName, email, contactPerson, phone, address } = req.body;
@@ -205,12 +202,11 @@ export const updateClient = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
-      message: 'Client updated successfully',
+      message: 'Client details updated successfully',
       client,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error editing/updating client records by id..." });
+    next(error);
   }
 }
 
@@ -224,7 +220,7 @@ export const updateClient = async (req: Request, res: Response) => {
 // Permanently removes a client from the system
 // Note: Will fail if the client has existing quotes or invoices (RESTRICT constraint)
 // ===================================================================================
-export const deleteClient = async (req: Request, res: Response) => {
+export const deleteClient = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -257,7 +253,6 @@ export const deleteClient = async (req: Request, res: Response) => {
       message: `Client "${clientName}" deleted successfully`,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error deleting/removing client records by id..." });
+    next(error);
   }
 }

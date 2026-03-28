@@ -1,5 +1,5 @@
-// Importing Request, Response from express for typing the controller functions
-import { Request, Response } from 'express';
+// Importing Request, Response, NextFunction from express for typing the controller functions
+import { Request, Response, NextFunction } from 'express';
 import { Inventory } from '../models';
 import { Op } from 'sequelize';
 
@@ -16,7 +16,7 @@ import { Op } from 'sequelize';
 // Triggered by the "+ Add Item" button on the Inventory page in the prototype
 // Body: { name, type, category?, unitPrice, itemCode?, stockQty?, lowStockThreshold?, availabilityStatus? }
 // ===================================================================================
-export const createInventoryItem = async (req: Request, res: Response) => {
+export const createInventoryItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       name, type, category, unitPrice,
@@ -67,8 +67,7 @@ export const createInventoryItem = async (req: Request, res: Response) => {
       item,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating inventory item.." });
+  next(error);
   }
 }
 
@@ -83,7 +82,7 @@ export const createInventoryItem = async (req: Request, res: Response) => {
 // Returns all active inventory items; populates the Inventory page in the prototype
 // Also used to populate the item dropdown on the New Quote page
 // ===================================================================================
-export const getAllInventory = async (req: Request, res: Response) => {
+export const getAllInventory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search, category, type } = req.query as {
       search?: string;
@@ -123,8 +122,7 @@ export const getAllInventory = async (req: Request, res: Response) => {
       items,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching inventory items.." });
+   next(error);
   }
 }
 
@@ -137,7 +135,7 @@ export const getAllInventory = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Returns a single inventory item by its UUID
 // ===================================================================================
-export const getInventoryById = async (req: Request, res: Response) => {
+export const getInventoryById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -157,8 +155,7 @@ export const getInventoryById = async (req: Request, res: Response) => {
       item,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching inventory items by id.." });
+   next(error);
   }
 }
 
@@ -171,7 +168,7 @@ export const getInventoryById = async (req: Request, res: Response) => {
 // @access Private(only logged in users)
 // Updates an item's details - triggered by the "Edit" button in the prototype
 // ===================================================================================
-export const updateInventoryItem = async (req: Request, res: Response) => {
+export const updateInventoryItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const {
@@ -216,8 +213,7 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
       item,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error updating/editing inventory item by id.." });
+   next(error);
   }
 }
 
@@ -231,7 +227,7 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
 // Soft deletes an item by setting isActive to false
 // Items are never permanently deleted - they may be referenced by existing quotes
 // ===================================================================================
-export const deleteInventoryItem = async (req: Request, res: Response) => {
+export const deleteInventoryItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -254,8 +250,7 @@ export const deleteInventoryItem = async (req: Request, res: Response) => {
       message: `"${item.name}" has been deactivated from the inventory catalogue`,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error deleting/removing inventory item by id.." });
+   next(error);
   }
 }
 
@@ -270,7 +265,7 @@ export const deleteInventoryItem = async (req: Request, res: Response) => {
 // Only applies to products, not services
 // Body: { quantity }
 // ===================================================================================
-export const restockInventoryItem = async (req: Request, res: Response) => {
+export const restockInventoryItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
@@ -306,7 +301,6 @@ export const restockInventoryItem = async (req: Request, res: Response) => {
       item,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error restocking or updating quantity of inventory item.." });
+  next(error);
   }
 }

@@ -1,29 +1,32 @@
 // Importing express framework
 import express from 'express';
 
+// ------- MIDDLEWARE -------------------------------------------------------------------
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
 import cors from 'cors';
 
 // Security middleware - sets various HTTP headers to protect against common web vulnerabilities
-import helmet from 'helmet';
+// import helmet from 'helmet';
 
 // HTTP request logger middleware (great for development)
 import morgan from 'morgan';
 
 // Utility to load environment variables from .env file into process.env
 import dotenv from 'dotenv';
+// -------------------------------------------------------------------------------------------------
 
 // Load environment variables from .env file (should be done as early as possible)
 dotenv.config();
 
-// Create Express application instance
-const app = express();
-
-// Built-in middleware to parse incoming requests with JSON payloads
-app.use(express.json());
-
-// Adds security-related HTTP headers (X-XSS-Protection, Content-Security-Policy, etc.)
-app.use(helmet());
+// Importing Security middleware
+import { 
+  helmetConfig,
+  corsConfig,
+  hppConfig,
+  authLimiter,
+  apiLimiter,
+  downloadLimiter
+ } from './middleware/security.middleware';
 
 
 // Importing Routes
@@ -35,47 +38,58 @@ import inventoryRoutes from './routes/inventory.routes';
 import invoiceRoutes from './routes/invoice.routes';
 
 
+// Import Global Error Handler
+import { errorHandler } from './middleware/error.middleware';
 
-// Configure CORS - controls which origins are allowed to access the API
-const corsOptions = {
-  // Use environment variable for frontend URL (recommended for production)
-  origin: process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
-  
-  // Allowed HTTP methods from the frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  
-  // Allow credentials (cookies, authorization headers, etc.) - enable only if needed
-  // credentials: true,
-  
-  // How long preflight OPTIONS requests can be cached (in seconds)
-  maxAge: 86400, // = 24 hours
-};
 
-// Apply CORS middleware with our configuration
-app.use(cors(corsOptions));
+// Create Express application instance
+const app = express();
 
+
+// ======================
+// MIDDLEWARE: REQUEST PARSING
+// ======================
+// Built-in middleware to parse incoming requests with JSON payloads
+// 10kb limit prevents oversized payload attacks
+app.use(express.json());
+
+
+// ======================
+// SECURITY
+// ======================
+app.use(helmetConfig);   // secure HTTP headers
+app.use(corsConfig);     // locked to VITE_FRONTEND_URL
+app.use(hppConfig);      // block duplicate query params
+
+
+// ======================
+//  LOGGING — development only
 // HTTP request logger - 'dev' format is colorful and concise (good for development)
+// ======================
+if (process.env.NODE_ENV === 'development') {
 app.use(morgan('dev'));
-
-// Optional: global error handler (you can expand this later)
-// app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-//   console.error(err.stack);
-//   res.status(500).json({ error: 'Something went wrong!' });
-// });
+}
 
 
 
-// Routes
-app.use('/auth', authRoutes)
-app.use('/users', userRoutes)
-app.use('/quotes', quoteRoutes)
-app.use('/clients', clientRoutes)
-app.use('/inventory', inventoryRoutes)
-app.use('/invoice', invoiceRoutes)
+// ======================
+// ROUTES WITH RATE LIMITING
+// Auth is strict (10/15min) - everything else is generous (100/15min)
+// Download gets its own moderate limit (20/15min) applied on top of apiLimiter
+// ======================
+app.use('/auth',       authLimiter, authRoutes)
+app.use('/users',      apiLimiter,  userRoutes)
+app.use('/quotes',     apiLimiter,  quoteRoutes)
+app.use('/clients',    apiLimiter,  clientRoutes)
+app.use('/inventory',  apiLimiter,  inventoryRoutes)
+app.use('/invoices',   apiLimiter,  invoiceRoutes)
+app.use('/invoices/:id/download',         downloadLimiter);
 
 
-
-
+// ======================
+// GLOBAL ERROR HANDLER
+// ======================
+app.use(errorHandler);
 
 
 // Export the configured Express app instance

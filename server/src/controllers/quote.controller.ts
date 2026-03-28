@@ -1,5 +1,5 @@
-// Importing Request, Response from express for typing the controller functions
-import { Request, Response } from 'express';
+// Importing Request, Response, NextFunction from express for typing the controller functions
+import { Request, Response, NextFunction } from 'express';
 // Impoerting all models
 import { Client, Inventory, Quote, QuoteItem, User } from '../models';
 // Importing Op from sequelize for query operators like iLike (case-insensitive search)
@@ -23,7 +23,7 @@ import { sendQuoteEmail } from '../services/email.service';
 // Returns all quotes with optional status filter and search
 //  Populates the quotes table (shows Quote ID, Client, Items, Amount, Status, Date)
 // ===================================================================================
-export const getAllQuotes = async (req: Request, res: Response) => {
+export const getAllQuotes = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { status, search } = req.query as { status?: string, search?: string };
 
@@ -78,8 +78,7 @@ export const getAllQuotes = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error retrieving quotes" });
+       next(error);
     }
 }
 
@@ -93,7 +92,7 @@ export const getAllQuotes = async (req: Request, res: Response) => {
 //  Returns a single quote with all its line items and client details
 // Populates the quote detail/view page
 // ===================================================================================
-export const getQuoteById = async (req: Request, res: Response) => {
+export const getQuoteById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
 
@@ -133,8 +132,7 @@ export const getQuoteById = async (req: Request, res: Response) => {
             quote,
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error retrieving quote by id" });
+        next(error);
     }
 }
 
@@ -260,7 +258,7 @@ const calculateTotals = (subtotal: number, vatRate: number | null) => {
 // Creates a new quote with line items — can be saved as draft or submitted immediately
 // Triggered by the New Quote page
 // ===================================================================================
-export const createQuote = async (req: Request, res: Response) => {
+export const createQuote = async (req: Request, res: Response, next: NextFunction) => {
     // Use a transaction so the quote and all its items are saved together
     // If anything fails, everything is rolled back — no orphaned quotes or missing items
     const transaction = await sequelize.transaction();
@@ -442,8 +440,7 @@ export const createQuote = async (req: Request, res: Response) => {
     } catch (error) {
         // Roll back the transaction if anything went wrong
         await transaction.rollback();
-        console.error(error);
-        res.status(500).json({ message: "Error creating quote.." });
+        next(error);
     }
 }
 
@@ -457,7 +454,7 @@ export const createQuote = async (req: Request, res: Response) => {
 // Allows editing a quote that is still in 'draft' status
 // Once submitted (pending/approved/rejected) a quote can no longer be edited
 // ===================================================================================
-export const updateQuote = async (req: Request, res: Response) => {
+export const updateQuote = async (req: Request, res: Response, next: NextFunction) => {
     const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
@@ -527,8 +524,7 @@ export const updateQuote = async (req: Request, res: Response) => {
         });
     } catch (error) {
         await transaction.rollback();
-        console.error(error);
-        res.status(500).json({ message: "Error updating quote item.." });
+    next(error);
     }
 }
 
@@ -543,7 +539,7 @@ export const updateQuote = async (req: Request, res: Response) => {
 // Triggered by the "Submit Quote →" button on the New Quote page in the prototype
 //  "Quote will be emailed to the client automatically on submission"
 // ===================================================================================
-export const submitQuote = async (req: Request, res: Response) => {
+export const submitQuote = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
 
@@ -626,8 +622,7 @@ export const submitQuote = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error submitting quote..." });
+        next(error);
     }
 }
 
@@ -644,7 +639,7 @@ export const submitQuote = async (req: Request, res: Response) => {
 // - actual invoice generation and inventory deduction happen in the invoice controller
 // Body: { status: 'approved' | 'rejected' | 'cancelled' }
 // ===================================================================================
-export const updateQuoteStatus = async (req: Request, res: Response) => {
+export const updateQuoteStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -693,7 +688,6 @@ export const updateQuoteStatus = async (req: Request, res: Response) => {
             },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error updating quote status..." });
+        next(error);
     }
 }
