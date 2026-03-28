@@ -11,14 +11,20 @@ import {
 } from '../controllers/quote.controller';
 
 // Importing middleware
-
 import authenticate from "../middleware/auth.middleware";
+
 
 const router = Router();
 
+
+// ======================
+// PROTECT ALL ROUTES
+// ======================
+router.use(authenticate);
+
 router.get('', getAllQuotes);
 router.get('/:id', getQuoteById);
-router.post('', authenticate, createQuote);
+router.post('', createQuote);
 router.put('/:id', updateQuote);
 router.patch('/:id/submit', submitQuote);
 router.patch('/:id/status', updateQuoteStatus);

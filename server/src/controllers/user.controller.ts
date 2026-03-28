@@ -13,7 +13,7 @@ import bcrypt from 'bcrypt';
 // ==================================================================================
 // @desc   GET ALL USERS
 // @route  GET  /users
-// @access Public
+// @access Private(only logged in users)
 // Returns all staff members (used to populate the staff table on the Settings page)
 // ===================================================================================
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -41,7 +41,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // ==================================================================================
 // @desc   GET USER BY ID
 // @route  GET  /users/:id
-// @access Public
+// @access Private(only logged in users)
 // Returns a single staff member's details by their UUID
 // ===================================================================================
 export const getUserById = async (req: Request, res: Response) => {
@@ -81,7 +81,7 @@ export const getUserById = async (req: Request, res: Response) => {
 // ==================================================================================
 // @desc   UPDATE USER BY ID
 // @route  GET  /users/:id
-// @access Public
+// @access Private(only logged in users)
 // Permanently removes a staff member from the database
 // ===================================================================================
 export const updateUser = async (req: Request, res: Response) => {
@@ -156,7 +156,7 @@ export const updateUser = async (req: Request, res: Response) => {
 // ==================================================================================
 // @desc   DELETE USER BY ID
 // @route  GET  /users/:id
-// @access Public
+// @access Private(only logged in users)
 // Permanently removes a staff member from the database
 // ===================================================================================
 export const deleteUser = async (req: Request, res: Response) => {

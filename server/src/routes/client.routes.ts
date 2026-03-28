@@ -9,7 +9,18 @@ import {
     deleteClient
 } from '../controllers/client.controller'
 
+// Importing middleware
+import authenticate from "../middleware/auth.middleware";
+
 const router = Router();
+
+
+// ======================
+// PROTECT ALL ROUTES
+// ======================
+router.use(authenticate); 
+
+
 
 router.get('', getAllClients);
 router.post('', createClient);

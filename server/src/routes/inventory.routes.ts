@@ -10,7 +10,17 @@ import {
     restockInventoryItem
 } from '../controllers/inventory.controller'
 
+// Importing middleware
+import authenticate from "../middleware/auth.middleware";
+
+
 const router = Router();
+
+// ======================
+// PROTECT ALL ROUTES
+// ======================
+router.use(authenticate); 
+
 
 router.get('', getAllInventory);
 router.post('', createInventoryItem);
