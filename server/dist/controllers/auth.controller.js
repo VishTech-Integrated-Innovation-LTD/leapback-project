@@ -105,7 +105,7 @@ const loginUser = async (req, res) => {
         const payload = { id: user.id, name: user.name, email: user.email, userType: user.userType };
         // Create JWT Token
         const token = jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
-        // Return the token and user info — the frontend uses name and userType for the sidebar
+        // Return the token and user info - the frontend uses name and userType for the sidebar
         res.status(200).json({
             message: 'Login successful',
             token,

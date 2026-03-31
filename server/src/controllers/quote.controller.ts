@@ -57,7 +57,7 @@ export const getAllQuotes = async (req: Request, res: Response, next: NextFuncti
                     }),
                 },
                 {
-                    // Include items just to get the count — shown as "4 items" in the prototype quotes table
+                    // Include items just to get the count - shown as "4 items" in the prototype quotes table
                     model: QuoteItem,
                     as: 'items',
                     attributes: ['id'],
@@ -236,8 +236,8 @@ const processLineItems = async (
 
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
-// HELPER — CALCULATE VAT TOTALS
-// VAT is optional — if vatRate is null or 0, no VAT is applied
+// HELPER - CALCULATE VAT TOTALS
+// VAT is optional - if vatRate is null or 0, no VAT is applied
 // grandTotal = subtotal + vatAmount (or just subtotal if no VAT)
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
@@ -255,12 +255,12 @@ const calculateTotals = (subtotal: number, vatRate: number | null) => {
 // @desc   CREATE QUOTE
 // @route  GET /quotes
 // @access Private(only logged in users)
-// Creates a new quote with line items — can be saved as draft or submitted immediately
+// Creates a new quote with line items - can be saved as draft or submitted immediately
 // Triggered by the New Quote page
 // ===================================================================================
 export const createQuote = async (req: Request, res: Response, next: NextFunction) => {
     // Use a transaction so the quote and all its items are saved together
-    // If anything fails, everything is rolled back — no orphaned quotes or missing items
+    // If anything fails, everything is rolled back - no orphaned quotes or missing items
     const transaction = await sequelize.transaction();
     try {
         const {
@@ -286,16 +286,16 @@ export const createQuote = async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
-        // Process line items — resolves inventory lookups and validates manual entries
+        // Process line items - resolves inventory lookups and validates manual entries
         const { processedItems, subtotal } = await processLineItems(items);
 
-        // Calculate VAT totals — vatRate is optional, null means no VAT applied
+        // Calculate VAT totals - vatRate is optional, null means no VAT applied
         const totals = calculateTotals(subtotal, vatRate ? parseFloat(vatRate) : null);
 
         // Generate the next sequential quote number e.g. QT-025
         const quoteNumber = await nextQuoteNumber();
 
-        // Determine status — 'draft' if saving, 'pending' if submitting immediately
+        // Determine status - 'draft' if saving, 'pending' if submitting immediately
         const status = submit ? 'pending' : 'draft';
 
         // ------------------------------------------------------------------------------------

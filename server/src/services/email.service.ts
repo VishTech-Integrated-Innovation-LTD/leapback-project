@@ -2,9 +2,9 @@ import nodemailer, { Transporter } from 'nodemailer';
 import fs from 'fs';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TRANSPORTER — lazy singleton
+// TRANSPORTER - lazy singleton
 // The SMTP connection is created once on first use and reused for all emails
-// Configured via .env — supports Gmail, Brevo, Ethereal, or any SMTP provider
+// Configured via .env - supports Gmail, Brevo, Ethereal, or any SMTP provider
 // ─────────────────────────────────────────────────────────────────────────────
 let transporter: Transporter | null = null;
 
@@ -24,7 +24,7 @@ function getTransporter(): Transporter {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPER — BUILD ATTACHMENT
+// HELPER - BUILD ATTACHMENT
 // Returns a nodemailer attachment array if the PDF exists on disk
 // Returns empty array if pdfPath is null or the file doesn't exist
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,8 +36,8 @@ const buildAttachment = (filename: string, pdfPath: string | null) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPER — EMAIL HEADER
-// Dark navy header with gold company name — matches Leapback brand palette
+// HELPER - EMAIL HEADER
+// Dark navy header with gold company name - matches Leapback brand palette
 // ─────────────────────────────────────────────────────────────────────────────
 const emailHeader = () => `
   <div style="background:#0A0F1E;padding:24px 32px">
@@ -51,7 +51,7 @@ const emailHeader = () => `
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPER — EMAIL FOOTER
+// HELPER - EMAIL FOOTER
 // Reads company details from .env for consistent footer across all emails
 // ─────────────────────────────────────────────────────────────────────────────
 const emailFooter = () => `
@@ -122,14 +122,14 @@ export async function sendInvoiceEmail(opts: {
     minimumFractionDigits: 2,
   });
 
-  // Bank details from .env — shown in the email body for easy payment reference
+  // Bank details from .env - shown in the email body for easy payment reference
   const bank    = process.env.COMPANY_BANK    ?? 'GTBank';
   const account = process.env.COMPANY_ACCOUNT ?? '0123456789';
 
   await getTransporter().sendMail({
     from:    process.env.EMAIL_FROM,
     to:      opts.to,
-    subject: `Invoice from ${process.env.COMPANY_NAME ?? 'Leapback'} — ${opts.invoiceNumber}`,
+    subject: `Invoice from ${process.env.COMPANY_NAME ?? 'Leapback'} - ${opts.invoiceNumber}`,
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;border-radius:8px;overflow:hidden">
         ${emailHeader()}
@@ -215,9 +215,9 @@ export async function sendInvoiceEmail(opts: {
 // import fs from 'fs';
 
 // // ─────────────────────────────────────────────────────────────────────────────
-// // TRANSPORTER — lazy singleton
+// // TRANSPORTER - lazy singleton
 // // The SMTP connection is created once on first use and reused for all emails
-// // Configured via .env — supports Gmail, Brevo, Mailgun, or any SMTP provider
+// // Configured via .env - supports Gmail, Brevo, Mailgun, or any SMTP provider
 // // ─────────────────────────────────────────────────────────────────────────────
 // let transporter: Transporter | null = null;
 
@@ -237,7 +237,7 @@ export async function sendInvoiceEmail(opts: {
 // }
 
 // // ─────────────────────────────────────────────────────────────────────────────
-// // HELPER — BUILD ATTACHMENT
+// // HELPER - BUILD ATTACHMENT
 // // Returns a nodemailer attachment array if the PDF exists on disk
 // // Returns empty array if pdfPath is null or the file doesn't exist
 // // ─────────────────────────────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ export async function sendInvoiceEmail(opts: {
 // };
 
 // // ─────────────────────────────────────────────────────────────────────────────
-// // HELPER — COMPANY FOOTER
+// // HELPER - COMPANY FOOTER
 // // Reads company details from .env for consistent footer across all emails
 // // ─────────────────────────────────────────────────────────────────────────────
 // const emailFooter = () => `
@@ -263,7 +263,7 @@ export async function sendInvoiceEmail(opts: {
 // // ─────────────────────────────────────────────────────────────────────────────
 // // SEND QUOTE EMAIL
 // // Sent automatically when a quote is submitted
-// // 💡 "Quote will be emailed to the client automatically on submission" — prototype note
+// // 💡 "Quote will be emailed to the client automatically on submission" - prototype note
 // // ─────────────────────────────────────────────────────────────────────────────
 // export async function sendQuoteEmail(opts: {
 //   to:          string;
@@ -279,7 +279,7 @@ export async function sendInvoiceEmail(opts: {
 //   await getTransporter().sendMail({
 //     from:    process.env.EMAIL_FROM,
 //     to:      opts.to,
-//     subject: `Your Quotation from ${process.env.COMPANY_NAME ?? 'Leapback'} — ${opts.quoteNumber}`,
+//     subject: `Your Quotation from ${process.env.COMPANY_NAME ?? 'Leapback'} - ${opts.quoteNumber}`,
 //     html: `
 //       <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
 //         <div style="background:#0e43a6;padding:20px 30px">
@@ -320,14 +320,14 @@ export async function sendInvoiceEmail(opts: {
 //     minimumFractionDigits: 2,
 //   });
 
-//   // Bank details from .env — shown in the email body for easy payment reference
+//   // Bank details from .env - shown in the email body for easy payment reference
 //   const bank    = process.env.COMPANY_BANK    ?? 'GTBank';
 //   const account = process.env.COMPANY_ACCOUNT ?? '0123456789';
 
 //   await getTransporter().sendMail({
 //     from:    process.env.EMAIL_FROM,
 //     to:      opts.to,
-//     subject: `Invoice from ${process.env.COMPANY_NAME ?? 'Leapback'} — ${opts.invoiceNumber}`,
+//     subject: `Invoice from ${process.env.COMPANY_NAME ?? 'Leapback'} - ${opts.invoiceNumber}`,
 //     html: `
 //       <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
 //         <div style="background:#0e43a6;padding:20px 30px">

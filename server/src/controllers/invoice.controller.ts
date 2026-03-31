@@ -255,7 +255,7 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
       { transaction }
     );
 
-    // Commit the transaction — invoice, items, and inventory deductions are all saved
+    // Commit the transaction - invoice, items, and inventory deductions are all saved
     await transaction.commit();
 
     // --- GENERATE INVOICE PDF ------------------------------------------------------------
@@ -362,7 +362,7 @@ export const updateInvoiceStatus = async (req: Request, res: Response, next: Nex
       return;
     }
 
-    // Can't unpay an already paid invoice — immutable audit trail
+    // Can't unpay an already paid invoice - immutable audit trail
     if (invoice.status === 'paid') {
       res.status(400).json({ message: 'Invoice is already marked as paid' });
       return;

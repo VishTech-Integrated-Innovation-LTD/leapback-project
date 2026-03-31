@@ -25,7 +25,7 @@ interface InvoiceItemInstance extends Model<InvoiceItemAttributes>, InvoiceItemA
 
 // Defining the InvoiceItem model using sequelize.define, specifying the model name, attributes, and options.
 // Each row is a permanent snapshot of a line item at the time of invoicing.
-// Copied from QuoteItems when the invoice is generated — never changed afterwards.
+// Copied from QuoteItems when the invoice is generated - never changed afterwards.
 // e.g. "Solar Panel 400W | Product | 5 | ₦85,000 | ₦425,000" from the prototype invoice PDF
 const InvoiceItem = sequelize.define<InvoiceItemInstance>(
   'InvoiceItem',
@@ -75,7 +75,7 @@ const InvoiceItem = sequelize.define<InvoiceItemInstance>(
     },
   },
   {
-    timestamps:  false,           // Invoice items are immutable snapshots — no need to track time.
+    timestamps:  false,           // Invoice items are immutable snapshots - no need to track time.
     underscored: true,            // Maps camelCase fields to snake_case columns (e.g. invoiceId → invoice_id).
     tableName:   'invoice_items', // Explicit table name in the database.
   }

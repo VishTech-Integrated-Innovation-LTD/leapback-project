@@ -21,7 +21,7 @@ export interface PDFData {
   refNumber:  string;             // e.g. "QT-024" or "INV-018"
   linkedRef?: string;             // Invoice shows "Quote Ref: QT-023"
   client: {
-    clientName:     string;       // clientName — can be a company or individual
+    clientName:     string;       // clientName - can be a company or individual
     contactPerson?: string | null;
     email?:         string | null;
     phone?:         string | null;
@@ -37,11 +37,11 @@ export interface PDFData {
 }
 
 // ------------------------------------------------------------------------------------
-// COLOURS — Leapback brand palette
-// Dark navy header/footer, gold accents — matches the Leapback website
+// COLOURS - Leapback brand palette
+// Dark navy header/footer, gold accents - matches the Leapback website
 // ------------------------------------------------------------------------------------
-const NAVY:  RGB = rgb(0.039, 0.059, 0.118);  // #0A0F1E — Leapback dark navy
-const GOLD:  RGB = rgb(0.910, 0.631, 0.125);  // #E8A120 — Leapback gold/yellow accent
+const NAVY:  RGB = rgb(0.039, 0.059, 0.118);  // #0A0F1E - Leapback dark navy
+const GOLD:  RGB = rgb(0.910, 0.631, 0.125);  // #E8A120 - Leapback gold/yellow accent
 const BLACK: RGB = rgb(0,     0,     0);
 const GREY:  RGB = rgb(0.5,   0.5,   0.5);
 const WHITE: RGB = rgb(1,     1,     1);
@@ -59,7 +59,7 @@ if (!fs.existsSync(QUOTES_DIR))   fs.mkdirSync(QUOTES_DIR,   { recursive: true }
 if (!fs.existsSync(INVOICES_DIR)) fs.mkdirSync(INVOICES_DIR, { recursive: true });
 
 // ------------------------------------------------------------------------------------
-// HELPER — FORMAT CURRENCY
+// HELPER - FORMAT CURRENCY
 // Naira symbol (₦) removed to avoid WinAnsi encoding error in pdf-lib
 // The currency context is clear from the document itself
 // ------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
     issueDate, dueDate, status,
   } = data;
 
-  // Company details read from .env — editable without touching code
+  // Company details read from .env - editable without touching code
   const company = {
     name:    process.env.COMPANY_NAME    ?? 'Leapback',
     address: process.env.COMPANY_ADDRESS ?? 'Abuja, Nigeria',
@@ -101,7 +101,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const fontReg  = await doc.embedFont(StandardFonts.Helvetica);
 
-  // ── Header bar — dark navy background ──────────────────────────────────────
+  // ── Header bar - dark navy background ──────────────────────────────────────
   page.drawRectangle({ x: 0, y: height - 80, width, height: 80, color: NAVY });
   page.drawText(company.name.toUpperCase(), {
     x: 40, y: height - 38, size: 18, font: fontBold, color: GOLD,
@@ -141,7 +141,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
   y -= 90;
   const cols = { item: 40, type: 240, qty: 310, price: 390, total: 490 };
 
-  // Table header row — navy background with gold text
+  // Table header row - navy background with gold text
   page.drawRectangle({ x: 30, y: y - 4, width: width - 60, height: 22, color: NAVY });
   const headers = ['ITEM', 'TYPE', 'QTY', 'UNIT PRICE', 'TOTAL'];
   const colX    = [cols.item, cols.type, cols.qty, cols.price, cols.total];
@@ -150,7 +150,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
   });
   y -= 24;
 
-  // Table rows — alternating background
+  // Table rows - alternating background
   items.forEach((item, i) => {
     const rowColor = i % 2 === 0 ? WHITE : LIGHT;
     page.drawRectangle({ x: 30, y: y - 6, width: width - 60, height: 20, color: rowColor });
@@ -183,7 +183,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
     totRow(`VAT (${vatRate}%)`, fmt(vatAmount));
   }
 
-  // Divider line above grand total — gold accent
+  // Divider line above grand total - gold accent
   page.drawLine({
     start: { x: tx, y: y + 4 }, end: { x: width - 40, y: y + 4 },
     thickness: 1, color: GOLD,
@@ -202,7 +202,7 @@ export async function generatePDF(data: PDFData): Promise<string> {
     );
   }
 
-  // ── Footer bar — dark navy background ──────────────────────────────────────
+  // ── Footer bar - dark navy background ──────────────────────────────────────
   page.drawRectangle({ x: 0, y: 0, width, height: 45, color: NAVY });
   page.drawText(
     `${company.name} · ${company.address} · ${company.email} · ${company.phone}`,

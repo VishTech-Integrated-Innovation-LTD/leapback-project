@@ -32,7 +32,7 @@ module.exports = {
                 type: Sequelize.ENUM('product', 'service'),
                 allowNull: false,
             },
-            // Groups items for filtering — "Solar", "IT", "Services", "Energy" in the prototype
+            // Groups items for filtering - "Solar", "IT", "Services", "Energy" in the prototype
             category: {
                 type: Sequelize.STRING(80),
                 allowNull: true,
@@ -43,27 +43,27 @@ module.exports = {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: false,
             },
-            // Current stock count for physical products — decremented automatically when a quote is approved
+            // Current stock count for physical products - decremented automatically when a quote is approved
             // Null for services. Shows as "2 units", "18 units" in the prototype inventory table.
             stock_qty: {
                 type: Sequelize.INTEGER,
                 allowNull: true,
             },
             // When stock_qty drops to or below this number, a low stock alert appears on the dashboard
-            // e.g. "Solar Panel 400W — 2 left" in the prototype dashboard
+            // e.g. "Solar Panel 400W - 2 left" in the prototype dashboard
             low_stock_threshold: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
                 defaultValue: 5,
             },
-            // Availability state for services only — "Available", "Busy" in the prototype
+            // Availability state for services only - "Available", "Busy" in the prototype
             // Null for physical products since they use stock_qty instead
             availability_status: {
                 type: Sequelize.ENUM('available', 'busy', 'unavailable'),
                 allowNull: true,
                 defaultValue: 'available',
             },
-            // Soft delete flag — deactivated items are hidden without being permanently removed
+            // Soft delete flag - deactivated items are hidden without being permanently removed
             is_active: {
                 type: Sequelize.BOOLEAN,
                 allowNull: false,

@@ -121,7 +121,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         // Create JWT Token
         const token = jwt.sign(payload, process.env.JWT_SECRET_KEY as string, { expiresIn: '7d' })
 
-        // Return the token and user info — the frontend uses name and userType for the sidebar
+        // Return the token and user info - the frontend uses name and userType for the sidebar
         res.status(200).json({
             message: 'Login successful',
             token,

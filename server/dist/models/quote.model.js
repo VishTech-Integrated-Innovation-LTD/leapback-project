@@ -40,14 +40,14 @@ const Quote = db_1.default.define('Quote', {
         allowNull: false,
         references: { model: 'users', key: 'id' },
     },
-    // Lifecycle status — drives the colour-coded badges in the prototype quotes table
+    // Lifecycle status - drives the colour-coded badges in the prototype quotes table
     // draft → pending (submitted) → approved / rejected / cancelled
     status: {
         type: sequelize_1.DataTypes.ENUM('draft', 'pending', 'approved', 'rejected', 'cancelled'),
         allowNull: false,
         defaultValue: 'draft',
     },
-    // VAT percentage applied to this quote — nullable if no VAT is charged
+    // VAT percentage applied to this quote - nullable if no VAT is charged
     vatRate: {
         type: sequelize_1.DataTypes.DECIMAL(5, 2),
         allowNull: true,
@@ -59,20 +59,20 @@ const Quote = db_1.default.define('Quote', {
         allowNull: false,
         defaultValue: 0,
     },
-    // VAT amount calculated from subtotal × vatRate — null if no VAT is applied
+    // VAT amount calculated from subtotal × vatRate - null if no VAT is applied
     vatAmount: {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: true,
         defaultValue: null,
     },
-    // Final amount shown on the quote — subtotal + vatAmount
+    // Final amount shown on the quote - subtotal + vatAmount
     // e.g. ₦516,000 shown in the prototype quote summary panel
     grandTotal: {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: false,
         defaultValue: 0,
     },
-    // Optional notes from the staff member — entered in the Notes field on the New Quote page
+    // Optional notes from the staff member - entered in the Notes field on the New Quote page
     notes: {
         type: sequelize_1.DataTypes.TEXT,
         allowNull: true,

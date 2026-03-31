@@ -40,7 +40,7 @@ const User = sequelize.define<UserInstance>(
       primaryKey:   true,                   // Marks this field as the primary key.
     },
 
-    // Full name of the staff member — displayed in the sidebar and Settings staff table
+    // Full name of the staff member - displayed in the sidebar and Settings staff table
     // e.g. "Admin User", "Temi O.", "Chidi A." as seen in the prototype
     name: {
       type:      DataTypes.STRING,
@@ -59,7 +59,7 @@ const User = sequelize.define<UserInstance>(
       allowNull: false,
     },
 
-    // All users of this internal tool are admins — only authorised Leapback staff can log in
+    // All users of this internal tool are admins - only authorised Leapback staff can log in
     userType: {
       type:         DataTypes.ENUM('admin'),
       allowNull:    false,
@@ -73,7 +73,7 @@ const User = sequelize.define<UserInstance>(
       defaultValue: true,
     },
 
-    // Records the last time this staff member signed in — useful for security auditing
+    // Records the last time this staff member signed in - useful for security auditing
     lastLoginAt: {
       type:         DataTypes.DATE,
       allowNull:    true,

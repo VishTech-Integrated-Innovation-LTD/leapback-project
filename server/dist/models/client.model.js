@@ -21,7 +21,7 @@ const Client = db_1.default.define('Client', {
         defaultValue: sequelize_1.DataTypes.UUIDV4, // Automatically generates a UUID v4 for new records.
         primaryKey: true, // Marks this field as the primary key.
     },
-    // Name of the client — can be a business name or an individual's name
+    // Name of the client - can be a business name or an individual's name
     // e.g. "Nexus Energy Ltd", "TechBridge Nigeria", or "Chukwuemeka Adeyemi"
     clientName: {
         type: sequelize_1.DataTypes.STRING(200),
@@ -33,13 +33,13 @@ const Client = db_1.default.define('Client', {
         type: sequelize_1.DataTypes.STRING(150),
         allowNull: true,
     },
-    // Client email — used to send quote PDFs and invoice notifications automatically
+    // Client email - used to send quote PDFs and invoice notifications automatically
     email: {
         type: sequelize_1.DataTypes.STRING(150),
         allowNull: false,
         unique: true,
     },
-    // Client phone number — displayed on invoice documents
+    // Client phone number - displayed on invoice documents
     phone: {
         type: sequelize_1.DataTypes.STRING(30),
         allowNull: true,

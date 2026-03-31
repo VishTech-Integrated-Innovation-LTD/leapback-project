@@ -12,7 +12,7 @@ import sequelize from '../db';
 interface ClientAttributes {
   sn?: number;
   id?: string;
-  clientName: string;       // clientName instead of companyName — clients can be individuals too
+  clientName: string;       // clientName instead of companyName - clients can be individuals too
   contactPerson?: string | null;
   email: string;
   phone?: string | null;
@@ -40,7 +40,7 @@ const Client = sequelize.define<ClientInstance>(
       primaryKey:   true,                   // Marks this field as the primary key.
     },
 
-    // Name of the client — can be a business name or an individual's name
+    // Name of the client - can be a business name or an individual's name
     // e.g. "Nexus Energy Ltd", "TechBridge Nigeria", or "Chukwuemeka Adeyemi"
     clientName: {
       type:      DataTypes.STRING(200),
@@ -54,14 +54,14 @@ const Client = sequelize.define<ClientInstance>(
       allowNull: true,
     },
 
-    // Client email — used to send quote PDFs and invoice notifications automatically
+    // Client email - used to send quote PDFs and invoice notifications automatically
     email: {
       type:      DataTypes.STRING(150),
       allowNull: false,
       unique:    true,
     },
 
-    // Client phone number — displayed on invoice documents
+    // Client phone number - displayed on invoice documents
     phone: {
       type:      DataTypes.STRING(30),
       allowNull: true,

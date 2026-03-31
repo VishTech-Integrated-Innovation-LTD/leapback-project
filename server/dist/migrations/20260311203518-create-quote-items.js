@@ -9,7 +9,7 @@ module.exports = {
                 defaultValue: Sequelize.UUIDV4,
                 primaryKey: true,
             },
-            // Foreign key — links this line item back to its parent quote
+            // Foreign key - links this line item back to its parent quote
             // CASCADE delete means if the quote is deleted, its items are deleted too
             quote_id: {
                 type: Sequelize.UUID,
@@ -28,7 +28,7 @@ module.exports = {
                 onDelete: 'SET NULL', // if inventory item is deleted, keep the quote item but clear the reference
             },
             // Name of the item as it appears on the quote and invoice documents
-            // Copied from inventory at creation time — price changes don't affect existing quotes
+            // Copied from inventory at creation time - price changes don't affect existing quotes
             item_name: {
                 type: Sequelize.STRING(200),
                 allowNull: false,
@@ -43,17 +43,17 @@ module.exports = {
                 type: Sequelize.DECIMAL(10, 2),
                 allowNull: false,
             },
-            // Price per unit at the time the quote was created — locked at creation
+            // Price per unit at the time the quote was created - locked at creation
             unit_price: {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: false,
             },
-            // quantity × unit_price — pre-calculated and stored
+            // quantity × unit_price - pre-calculated and stored
             line_total: {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: false,
             },
-            // created_at only — line items are never updated after creation
+            // created_at only - line items are never updated after creation
             created_at: {
                 type: Sequelize.DATE,
                 allowNull: false,

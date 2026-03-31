@@ -17,7 +17,7 @@ module.exports = {
         primaryKey:   true,
       },
 
-      // Human-readable invoice reference — auto-generated when a quote is approved
+      // Human-readable invoice reference - auto-generated when a quote is approved
       // e.g. "#INV-018" shown in the prototype invoice list and PDF header
       invoice_number: {
         type:      Sequelize.STRING(20),
@@ -25,7 +25,7 @@ module.exports = {
         unique:    true,
       },
 
-      // Foreign key — links this invoice back to the approved quote it was generated from
+      // Foreign key - links this invoice back to the approved quote it was generated from
       // The prototype shows "Quote Ref: #QT-023" on the invoice view page
       quote_id: {
         type:       Sequelize.UUID,
@@ -35,7 +35,7 @@ module.exports = {
         onDelete:   'RESTRICT',  // never delete a quote that has an invoice
       },
 
-      // Foreign key — links this invoice to the billed client
+      // Foreign key - links this invoice to the billed client
       client_id: {
         type:       Sequelize.UUID,
         allowNull:  false,
@@ -44,7 +44,7 @@ module.exports = {
         onDelete:   'RESTRICT',
       },
 
-      // Foreign key — tracks which staff member generated this invoice
+      // Foreign key - tracks which staff member generated this invoice
       created_by: {
         type:       Sequelize.UUID,
         allowNull:  false,
@@ -53,7 +53,7 @@ module.exports = {
         onDelete:   'RESTRICT',
       },
 
-      // Payment status — shown as colour-coded badges in the prototype invoice list
+      // Payment status - shown as colour-coded badges in the prototype invoice list
       // sent → paid (marked manually by staff) | cancelled (voided, never deleted)
       status: {
         type:         Sequelize.ENUM('sent', 'paid', 'cancelled'),
@@ -61,7 +61,7 @@ module.exports = {
         defaultValue: 'sent',
       },
 
-      // VAT percentage — copied from the original quote. Null if no VAT was applied.
+      // VAT percentage - copied from the original quote. Null if no VAT was applied.
       vat_rate: {
         type:      Sequelize.DECIMAL(5, 2),
         allowNull: true,
@@ -72,13 +72,13 @@ module.exports = {
         allowNull: false,
       },
 
-      // VAT amount — copied from the approved quote. Null if no VAT was applied.
+      // VAT amount - copied from the approved quote. Null if no VAT was applied.
       vat_amount: {
         type:      Sequelize.DECIMAL(14, 2),
         allowNull: true,
       },
 
-      // Total amount due — shown as "TOTAL DUE ₦1,290,000" on the prototype invoice PDF
+      // Total amount due - shown as "TOTAL DUE ₦1,290,000" on the prototype invoice PDF
       grand_total: {
         type:      Sequelize.DECIMAL(14, 2),
         allowNull: false,
@@ -90,7 +90,7 @@ module.exports = {
         allowNull: true,
       },
 
-      // Payment deadline shown on the invoice — typically 14 days from generation
+      // Payment deadline shown on the invoice - typically 14 days from generation
       // e.g. "Due Date: Mar 15, 2026" shown in the prototype invoice view
       due_date: {
         type:      Sequelize.DATEONLY,

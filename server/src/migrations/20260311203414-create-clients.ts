@@ -30,14 +30,14 @@ module.exports = {
         allowNull: true,
       },
 
-      // Client email — used to send quote PDFs and invoice notifications automatically
+      // Client email - used to send quote PDFs and invoice notifications automatically
       email: {
         type:      Sequelize.STRING(150),
         allowNull: false,
         unique:    true,
       },
 
-      // Client phone number — displayed on invoice documents
+      // Client phone number - displayed on invoice documents
       phone: {
         type:      Sequelize.STRING(30),
         allowNull: true,

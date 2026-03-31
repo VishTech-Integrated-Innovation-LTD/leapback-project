@@ -63,7 +63,7 @@ app.use(hppConfig);      // block duplicate query params
 
 
 // ======================
-//  LOGGING — development only
+//  LOGGING - development only
 // HTTP request logger - 'dev' format is colorful and concise (good for development)
 // ======================
 if (process.env.NODE_ENV === 'development') {

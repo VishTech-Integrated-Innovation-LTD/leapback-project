@@ -7,7 +7,7 @@ import { Quote, Invoice } from '../models';
 // ==================================================================================
 // NEXT QUOTE NUMBER
 // Generates the next sequential quote number e.g. QT-001, QT-025
-// Uses MAX(sn) instead of the latest createdAt to avoid race conditions —
+// Uses MAX(sn) instead of the latest createdAt to avoid race conditions -
 // if two quotes are created at the same millisecond, createdAt ordering is
 // unreliable, but sn (auto-increment integer) is always unique and increasing
 // ==================================================================================
@@ -32,7 +32,7 @@ export async function nextQuoteNumber(): Promise<string> {
 // ==================================================================================
 // NEXT INVOICE NUMBER
 // Generates the next sequential invoice number e.g. INV-001, INV-018
-// Same MAX(sn) approach as quotes — safe under concurrent requests
+// Same MAX(sn) approach as quotes - safe under concurrent requests
 // ==================================================================================
 export async function nextInvoiceNumber(): Promise<string> {
   const result = await Invoice.findOne({

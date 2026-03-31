@@ -22,7 +22,7 @@ const User = db_1.default.define('User', {
         defaultValue: sequelize_1.DataTypes.UUIDV4, // Automatically generates a UUID v4 for new records.
         primaryKey: true, // Marks this field as the primary key.
     },
-    // Full name of the staff member — displayed in the sidebar and Settings staff table
+    // Full name of the staff member - displayed in the sidebar and Settings staff table
     // e.g. "Admin User", "Temi O.", "Chidi A." as seen in the prototype
     name: {
         type: sequelize_1.DataTypes.STRING,
@@ -38,7 +38,7 @@ const User = db_1.default.define('User', {
         type: sequelize_1.DataTypes.STRING, // String type for the user's password (hashed with bcrypt).
         allowNull: false,
     },
-    // All users of this internal tool are admins — only authorised Leapback staff can log in
+    // All users of this internal tool are admins - only authorised Leapback staff can log in
     userType: {
         type: sequelize_1.DataTypes.ENUM('admin'),
         allowNull: false,
@@ -50,7 +50,7 @@ const User = db_1.default.define('User', {
         allowNull: false,
         defaultValue: true,
     },
-    // Records the last time this staff member signed in — useful for security auditing
+    // Records the last time this staff member signed in - useful for security auditing
     lastLoginAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,

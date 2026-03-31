@@ -100,13 +100,13 @@ export const getAllInventory = async (req: Request, res: Response, next: NextFun
       whereClause.type = type;
     }
 
-    // Filter by category if provided — matches the category filter in the prototype
+    // Filter by category if provided - matches the category filter in the prototype
     // e.g. "Solar", "IT", "Services"
     if (category) {
       whereClause.category = category;
     }
 
-    // Search by item name if provided — matches the search bar on the Inventory page
+    // Search by item name if provided - matches the search bar on the Inventory page
     if (search) {
       whereClause.name = { [Op.iLike]: `%${search}%` };
     }
@@ -242,7 +242,7 @@ export const deleteInventoryItem = async (req: Request, res: Response, next: Nex
       return;
     }
 
-    // Soft delete — set isActive to false instead of permanently removing
+    // Soft delete - set isActive to false instead of permanently removing
     // This preserves the item reference on any existing quote line items
     await item.update({ isActive: false });
 
@@ -261,7 +261,7 @@ export const deleteInventoryItem = async (req: Request, res: Response, next: Nex
 // @desc   RESTOCK INVENTORY ITEM
 // @route   PATCH /inventory/:id/restock
 // @access Private(only logged in users)
-// Adds stock to a product — triggered by the "Restock" button in the prototype
+// Adds stock to a product - triggered by the "Restock" button in the prototype
 // Only applies to products, not services
 // Body: { quantity }
 // ===================================================================================

@@ -14,14 +14,14 @@ module.exports = {
                 defaultValue: Sequelize.UUIDV4,
                 primaryKey: true,
             },
-            // Human-readable reference number — e.g. "QT-024" shown throughout the prototype
+            // Human-readable reference number - e.g. "QT-024" shown throughout the prototype
             quote_number: {
                 type: Sequelize.STRING(20),
                 allowNull: false,
                 unique: true,
             },
-            // Foreign key — links this quote to the client it was created for
-            // References clients table — must exist before quotes can be created
+            // Foreign key - links this quote to the client it was created for
+            // References clients table - must exist before quotes can be created
             client_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
@@ -29,8 +29,8 @@ module.exports = {
                 onUpdate: 'CASCADE',
                 onDelete: 'RESTRICT', // prevent deleting a client that has quotes
             },
-            // Foreign key — tracks which staff member created this quote
-            // References users table — must exist before quotes can be created
+            // Foreign key - tracks which staff member created this quote
+            // References users table - must exist before quotes can be created
             created_by: {
                 type: Sequelize.UUID,
                 allowNull: false,
@@ -38,14 +38,14 @@ module.exports = {
                 onUpdate: 'CASCADE',
                 onDelete: 'RESTRICT',
             },
-            // Lifecycle status — drives the colour-coded badges in the prototype quotes table
+            // Lifecycle status - drives the colour-coded badges in the prototype quotes table
             // draft → pending (submitted) → approved / rejected / cancelled
             status: {
                 type: Sequelize.ENUM('draft', 'pending', 'approved', 'rejected', 'cancelled'),
                 allowNull: false,
                 defaultValue: 'draft',
             },
-            // VAT percentage applied to this quote — nullable if no VAT is charged
+            // VAT percentage applied to this quote - nullable if no VAT is charged
             vat_rate: {
                 type: Sequelize.DECIMAL(5, 2),
                 allowNull: true,
@@ -55,19 +55,19 @@ module.exports = {
                 allowNull: false,
                 defaultValue: 0,
             },
-            // VAT amount calculated from subtotal × vat_rate — null if no VAT is applied
+            // VAT amount calculated from subtotal × vat_rate - null if no VAT is applied
             vat_amount: {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: true,
             },
-            // Final amount shown on the quote — subtotal + vat_amount
+            // Final amount shown on the quote - subtotal + vat_amount
             // e.g. ₦516,000 shown in the prototype quote summary panel
             grand_total: {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: false,
                 defaultValue: 0,
             },
-            // Optional notes from the staff member — entered in the Notes field on the New Quote page
+            // Optional notes from the staff member - entered in the Notes field on the New Quote page
             notes: {
                 type: Sequelize.TEXT,
                 allowNull: true,

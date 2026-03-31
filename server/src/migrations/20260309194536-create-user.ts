@@ -17,7 +17,7 @@ module.exports = {
         primaryKey:   true,                   // Marks this field as the primary key.
       },
 
-      // Full name of the staff member — displayed in the sidebar and Settings staff table
+      // Full name of the staff member - displayed in the sidebar and Settings staff table
       // e.g. "Admin User", "Temi O.", "Chidi A." as seen in the prototype
       name: {
         type:      Sequelize.STRING,
@@ -31,13 +31,13 @@ module.exports = {
         unique:    true,
       },
 
-      // Hashed with bcrypt before saving — never stored as plain text
+      // Hashed with bcrypt before saving - never stored as plain text
       password: {
         type:      Sequelize.STRING,
         allowNull: false,
       },
 
-      // All users of this internal tool are admins — only authorised Leapback staff can log in
+      // All users of this internal tool are admins - only authorised Leapback staff can log in
       // snake_case here because migrations write directly to the database
       // (underscored: true in the model handles the camelCase → snake_case translation in app code only)
       user_type: {
@@ -53,7 +53,7 @@ module.exports = {
         defaultValue: true,
       },
 
-      // Records the last time this staff member signed in — useful for security auditing
+      // Records the last time this staff member signed in - useful for security auditing
       last_login_at: {
         type:         Sequelize.DATE,
         allowNull:    true,

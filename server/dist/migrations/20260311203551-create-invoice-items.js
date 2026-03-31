@@ -9,7 +9,7 @@ module.exports = {
                 defaultValue: Sequelize.UUIDV4,
                 primaryKey: true,
             },
-            // Foreign key — links this line item back to its parent invoice
+            // Foreign key - links this line item back to its parent invoice
             // CASCADE delete means if the invoice is deleted, its items are deleted too
             invoice_id: {
                 type: Sequelize.UUID,
@@ -19,7 +19,7 @@ module.exports = {
                 onDelete: 'CASCADE',
             },
             // Permanent snapshot of the item name at time of invoicing
-            // Copied from quote_items — shown in the line items table on the invoice PDF
+            // Copied from quote_items - shown in the line items table on the invoice PDF
             item_name: {
                 type: Sequelize.STRING(200),
                 allowNull: false,
@@ -44,7 +44,7 @@ module.exports = {
                 type: Sequelize.DECIMAL(14, 2),
                 allowNull: false,
             },
-            // No timestamps — invoice items are immutable snapshots, never updated
+            // No timestamps - invoice items are immutable snapshots, never updated
         });
     },
     async down(queryInterface) {

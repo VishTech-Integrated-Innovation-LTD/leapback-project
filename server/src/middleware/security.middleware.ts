@@ -6,12 +6,12 @@ import { Request, Response } from 'express';
 
 // ---------------------------------------------------------------------------------------------
 // HELMET
-// Sets secure HTTP headers — prevents clickjacking, MIME sniffing, XSS etc.
+// Sets secure HTTP headers - prevents clickjacking, MIME sniffing, XSS etc.
 // Configured specifically for an API (no need for browser security policies)
 // ---------------------------------------------------------------------------------------------
 
 export const helmetConfig = helmet({
-  // Disable CSP for a pure API — no HTML pages served
+  // Disable CSP for a pure API - no HTML pages served
   contentSecurityPolicy: false,
 
   // Allow cross-origin requests for PDF downloads
@@ -44,7 +44,7 @@ export const corsConfig = cors({
 });
 
 // ---------------------------------------------------------------------------------------------
-// HPP — HTTP Parameter Pollution Protection
+// HPP - HTTP Parameter Pollution Protection
 // Prevents attacks that send duplicate query params e.g. ?status=paid&status=sent
 // Picks the last value and ignores duplicates
 // ---------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ const createLimiter = (windowMs: number, max: number, message: string) =>
 
 // ---------------------------------------------------------------------------------------------
 // AUTH RATE LIMITER
-// Strict — prevents brute force attacks on the login endpoint
+// Strict - prevents brute force attacks on the login endpoint
 // 10 attempts per 15 minutes per IP
 // e.g. if someone keeps guessing passwords, they get locked out quickly
 // ---------------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ export const authLimiter = createLimiter(
 
 // ---------------------------------------------------------------------------------------------
 // API RATE LIMITER
-// Generous — internal staff tool with predictable low volume usage
+// Generous - internal staff tool with predictable low volume usage
 // 100 requests per 15 minutes per IP
 // ---------------------------------------------------------------------------------------------
 export const apiLimiter = createLimiter(
@@ -90,7 +90,7 @@ export const apiLimiter = createLimiter(
 
 // ---------------------------------------------------------------------------------------------
 // PDF/DOWNLOAD RATE LIMITER
-// Moderate — file serving is expensive, limit to prevent abuse
+// Moderate - file serving is expensive, limit to prevent abuse
 // 20 downloads per 15 minutes per IP
 // ---------------------------------------------------------------------------------------------
 export const downloadLimiter = createLimiter(

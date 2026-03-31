@@ -71,21 +71,21 @@ const QuoteItem = sequelize.define<QuoteItemInstance>(
       allowNull: false,
     },
 
-    // Price per unit at the time the quote was created — locked at creation
+    // Price per unit at the time the quote was created - locked at creation
     // Copied from inventory if inventoryId is set, preventing price tampering
     unitPrice: {
       type:      DataTypes.DECIMAL(14, 2),
       allowNull: false,
     },
 
-    // quantity × unitPrice — pre-calculated and stored
+    // quantity × unitPrice - pre-calculated and stored
     lineTotal: {
       type:      DataTypes.DECIMAL(14, 2),
       allowNull: false,
     },
   },
   {
-    timestamps:  true,           // Adds createdAt only — see updatedAt below.
+    timestamps:  true,           // Adds createdAt only - see updatedAt below.
     updatedAt:   false,          // Line items are never edited after creation.
     underscored: true,           // Maps camelCase fields to snake_case columns (e.g. quoteId → quote_id).
     tableName:   'quote_items',  // Explicit table name in the database.

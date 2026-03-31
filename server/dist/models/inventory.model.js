@@ -36,12 +36,12 @@ const Inventory = db_1.default.define('Inventory', {
         unique: true,
     },
     // Determines whether this item is a physical product (has stock) or a service (has availability)
-    // Controls which fields are relevant — stockQty for products, availabilityStatus for services
+    // Controls which fields are relevant - stockQty for products, availabilityStatus for services
     type: {
         type: sequelize_1.DataTypes.ENUM('product', 'service'),
         allowNull: false,
     },
-    // Groups items for filtering in the prototype — "Solar", "IT", "Services", "Energy"
+    // Groups items for filtering in the prototype - "Solar", "IT", "Services", "Energy"
     category: {
         type: sequelize_1.DataTypes.STRING(80),
         allowNull: true,
@@ -52,27 +52,27 @@ const Inventory = db_1.default.define('Inventory', {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: false,
     },
-    // Current stock count for physical products — decremented automatically when a quote is approved
+    // Current stock count for physical products - decremented automatically when a quote is approved
     // Null for services. Shows as "2 units", "5 units", "18 units" in the prototype inventory table.
     stockQty: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: true,
     },
     // When stockQty drops to or below this number, a low stock alert appears on the dashboard
-    // e.g. "Solar Panel 400W — 2 left" shown in the prototype dashboard alert panel
+    // e.g. "Solar Panel 400W - 2 left" shown in the prototype dashboard alert panel
     lowStockThreshold: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 5,
     },
-    // Availability state for services only — shown as "Available", "Busy" in the prototype
+    // Availability state for services only - shown as "Available", "Busy" in the prototype
     // Null for physical products since they use stockQty instead
     availabilityStatus: {
         type: sequelize_1.DataTypes.ENUM('available', 'busy', 'unavailable'),
         allowNull: true,
         defaultValue: 'available',
     },
-    // Soft delete flag — deactivated items are hidden from the catalogue without being removed
+    // Soft delete flag - deactivated items are hidden from the catalogue without being removed
     isActive: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,

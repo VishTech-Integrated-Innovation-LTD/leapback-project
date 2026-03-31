@@ -18,7 +18,7 @@ export interface JwtPayload {
 
 // Extends Express's Request to include the logged-in user
 // Available as req.user in any controller on a protected route
-// user is optional here — Express's Request doesn't have it by default
+// user is optional here - Express's Request doesn't have it by default
 // Controllers that need req.user should cast: (req as AuthRequest).user
 export interface AuthRequest extends Request {
     user?: {
@@ -81,7 +81,7 @@ const authenticate = async (
         // Attach the user to the request - available as req.user in all controllers
         // req.user = user.toJSON() as AuthRequest['user'];
 
-    // Cast to AuthRequest to attach user — TypeScript is satisfied
+    // Cast to AuthRequest to attach user - TypeScript is satisfied
     (req as AuthRequest).user = user.toJSON() as AuthRequest['user'];
 
         // Proceed to the next middleware or route handler

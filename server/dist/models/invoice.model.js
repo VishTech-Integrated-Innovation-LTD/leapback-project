@@ -21,7 +21,7 @@ const Invoice = db_1.default.define('Invoice', {
         defaultValue: sequelize_1.DataTypes.UUIDV4, // Automatically generates a UUID v4 for new records.
         primaryKey: true, // Marks this field as the primary key.
     },
-    // Human-readable invoice reference — auto-generated when a quote is approved
+    // Human-readable invoice reference - auto-generated when a quote is approved
     // e.g. "#INV-018" shown in the prototype invoice list and PDF header
     invoiceNumber: {
         type: sequelize_1.DataTypes.STRING(20),
@@ -47,29 +47,29 @@ const Invoice = db_1.default.define('Invoice', {
         allowNull: false,
         references: { model: 'users', key: 'id' },
     },
-    // Payment status — shown as colour-coded badges in the prototype invoice list
+    // Payment status - shown as colour-coded badges in the prototype invoice list
     // sent → paid (marked manually by staff) | cancelled (voided, never deleted)
     status: {
         type: sequelize_1.DataTypes.ENUM('sent', 'paid', 'cancelled'),
         allowNull: false,
         defaultValue: 'sent',
     },
-    // VAT percentage — copied from the original quote. Null if no VAT was applied.
+    // VAT percentage - copied from the original quote. Null if no VAT was applied.
     vatRate: {
         type: sequelize_1.DataTypes.DECIMAL(5, 2),
         allowNull: true,
     },
-    // Sum of all line item totals before VAT — copied from the approved quote
+    // Sum of all line item totals before VAT - copied from the approved quote
     subtotal: {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: false,
     },
-    // VAT amount — copied from the approved quote. Null if no VAT was applied.
+    // VAT amount - copied from the approved quote. Null if no VAT was applied.
     vatAmount: {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: true,
     },
-    // Total amount due — shown as "TOTAL DUE ₦1,290,000" on the prototype invoice PDF
+    // Total amount due - shown as "TOTAL DUE ₦1,290,000" on the prototype invoice PDF
     grandTotal: {
         type: sequelize_1.DataTypes.DECIMAL(14, 2),
         allowNull: false,
@@ -79,7 +79,7 @@ const Invoice = db_1.default.define('Invoice', {
         type: sequelize_1.DataTypes.TEXT,
         allowNull: true,
     },
-    // Payment deadline — typically 14 days from generation
+    // Payment deadline - typically 14 days from generation
     // e.g. "Due Date: Mar 15, 2026" shown in the prototype invoice view
     dueDate: {
         type: sequelize_1.DataTypes.DATEONLY,

@@ -1,5 +1,5 @@
 // Importing all models from their respective files
-// Each model has its own file — no bundled exports
+// Each model has its own file - no bundled exports
 import User        from './user.model';
 import Client      from './client.model';
 import Inventory   from './inventory.model';
@@ -10,7 +10,7 @@ import InvoiceItem from './invoice-item.model';
 
 // ── Associations ──────────────────────────────────────────────────────────────
 // Defines all relationships between models in one central place.
-// These must be declared before any queries run — importing this file in app.ts
+// These must be declared before any queries run - importing this file in app.ts
 // ensures all associations are registered at startup.
 
 // Quote ↔ Client
@@ -31,7 +31,7 @@ QuoteItem.belongsTo(Quote,   { foreignKey: 'quoteId' });
 
 // QuoteItem ↔ Inventory (optional)
 // A line item may reference an inventory item (dropdown selection)
-// or have no reference at all (manual entry) — hence allowNull: true on inventoryId
+// or have no reference at all (manual entry) - hence allowNull: true on inventoryId
 Inventory.hasMany(QuoteItem,      { foreignKey: 'inventoryId', as: 'quoteItems' });
 QuoteItem.belongsTo(Inventory,    { foreignKey: 'inventoryId', as: 'inventoryItem' });
 
