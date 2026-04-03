@@ -7,6 +7,7 @@ import Layout from "../components/layout/Layout"
 // Pages
 import DashboardPage from "../components/pages/DashboardPage"
 import LoginPage from "../components/pages/LoginPage"
+import QuotesPage from "../components/pages/QuotesPage"
 
 
 // --------------------------------------------------------------------------------
@@ -26,11 +27,12 @@ const AppRouter = () => {
 
         {/* --- Protected - all wrapped in Layout (sidebar + topbar) -------- */}
         <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />} >
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route element={<Layout />} >
+            <Route path="/dashboard" element={<DashboardPage />} />
 
+            <Route path="/quotes" element={<QuotesPage />} />
 
-        </Route>
+          </Route>
 
         </Route>
 
