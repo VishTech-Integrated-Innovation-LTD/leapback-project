@@ -56,7 +56,7 @@ const Layout = () => {
 
 
   return (
-    <div className='min-h-screen bg-gray-100'>
+    <div className='min-h-screen bg-[#0A0F1E]'>
 
       {/* Fixed sidebar */}
       <Sidebar pendingQuotesCount={pendingQuotesCount} />

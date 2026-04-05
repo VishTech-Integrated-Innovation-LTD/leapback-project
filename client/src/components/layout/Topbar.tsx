@@ -43,16 +43,17 @@ const Topbar = ({ lowStockCount = 0 }: TopbarProps) => {
 
 
     return (
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 fixed top-0 left-64 right-0 z-30">
+        <header className="h-16 bg-[#0D1526] border-b border-white/10 flex items-center justify-between px-6 fixed top-0 left-64 right-0 z-30">
 
             {/* ----- Page title --------------------------------------------------- */}
-            <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+            <h2 className="text-lg font-semibold text-white">{title}</h2>
+
 
             {/* ----- Right actions --------------------------------------------------- */}
             <div className="flex items-center gap-3">
                 {/* Low stock notification bell */}
                 <button
-                    className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+                    className="relative p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-colors"
                     title={
                         lowStockCount > 0
                             ? `${lowStockCount} low stock alert${lowStockCount > 1 ? 's' : ''}`
@@ -69,7 +70,7 @@ const Topbar = ({ lowStockCount = 0 }: TopbarProps) => {
                 {location.pathname !== '/quotes/new' && (
                     <button
                         onClick={() => navigate('/quotes/new')}
-                        className="flex items-center gap-2 bg-[#0A0F1E] text-[#E8A120] text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#0A0F1E]/90 transition-colors"
+                        className="flex items-center gap-2 bg-[#E8A120] text-[#0A0F1E] text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#E8A120]/90 transition-colors"
                     >
                         <PlusIcon size={16} weight="bold" />
                         New Quote
