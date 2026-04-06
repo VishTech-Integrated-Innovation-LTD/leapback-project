@@ -9,7 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 const pageTitles: Record<string, string> = {
     '/dashboard': 'Dashboard',
     '/quotes': 'Quotes',
-    '/quotes/new': 'New Quote',
+    '/quotes/new': 'Create New Quote',
     '/invoices': 'Invoices',
     '/inventory': 'Inventory',
     '/clients': 'Client Records',

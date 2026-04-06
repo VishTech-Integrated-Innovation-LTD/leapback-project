@@ -8,6 +8,8 @@ import Layout from "../components/layout/Layout"
 import DashboardPage from "../components/pages/DashboardPage"
 import LoginPage from "../components/pages/LoginPage"
 import QuotesPage from "../components/pages/QuotesPage"
+import QuoteDetailPage from "../components/pages/QuoteDetailPage"
+import NewQuotePage from "../components/pages/NewQuotePage"
 
 
 // --------------------------------------------------------------------------------
@@ -31,6 +33,8 @@ const AppRouter = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
 
             <Route path="/quotes" element={<QuotesPage />} />
+            <Route path="/quotes/:id" element={<QuoteDetailPage />} />
+            <Route path="/quotes/new" element={<NewQuotePage />} />
 
           </Route>
 

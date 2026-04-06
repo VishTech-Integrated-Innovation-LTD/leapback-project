@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { getDashboardData } from "../../api/dashboard.api"
 import { formatCurrency, formatCurrencyCompact, formatDate, getQuoteStatusColor } from "../../utils/formatCurrency"
-import { ArrowRightIcon, CheckCircleIcon, ClockCountdownIcon, CurrencyNgnIcon, FileTextIcon, UsersIcon, WarningIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, ArrowUpRightIcon, CheckCircleIcon, ClockCountdownIcon, CurrencyNgnIcon, FileTextIcon, UsersIcon, WarningIcon } from "@phosphor-icons/react";
 
 // --------------------------------------------------------------------------
 // KPI CARD - dark themed
@@ -123,6 +123,108 @@ const DashboardPage = () => {
               View All <ArrowRightIcon size={12} />
             </button>
           </div>
+
+          {data.recentQuotes.length === 0 ? (
+            <div className="px-5 py-10 text-center text-white/30 text-sm">
+              No quotes yet. Create your first quote.
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="text-left text-xs font-medium text-white/30 px-5 py-3">Quote ID</th>
+                  <th className="text-left text-xs font-medium text-white/30 px-5 py-3">Client</th>
+                  <th className="text-left text-xs font-medium text-white/30 px-5 py-3">Amount</th>
+                  <th className="text-left text-xs font-medium text-white/30 px-5 py-3">Status</th>
+                  <th className="text-left text-xs font-medium text-white/30 px-5 py-3">Date</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {data.recentQuotes.map((quote) => (
+                  <tr
+                    key={quote.id}
+                    className="border-b border-white/5 hover:bg-white/3 transition-colors"
+                  >
+                    <td className="px-5 py-3.5 font-medium text-white">
+                      #{quote.quoteNumber}
+                    </td>
+                    {/* Client name comes from the nested client object on the quote */}
+                    <td className="px-5 py-3.5 text-white/60">
+                      {quote.client?.clientName ?? '—'}
+                    </td>
+                    <td className="px-5 py-3.5 text-white font-medium">
+                      {formatCurrency(quote.grandTotal)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${getQuoteStatusColor(quote.status)}`}>
+                        {quote.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-white/40">
+                      {formatDate(quote.createdAt)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() => navigate(`/quotes/${quote.id}`)}
+                        className="text-white/30 hover:text-[#E8A120] transition-colors"
+                        title="View quote"
+                      >
+                        <ArrowUpRightIcon size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Low Stock Alerts */}
+        <div className="bg-[#0D1526] border border-white/10 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10">
+            <h3 className="text-sm font-semibold text-white">Low Stock</h3>
+            <p className="text-xs text-white/30 mt-0.5">Items needing attention</p>
+          </div>
+
+          {data.lowStockAlerts.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <CheckCircleIcon size={32} weight="fill" className="text-green-400 mx-auto mb-2" />
+              <p className="text-white/30 text-sm">All stock levels are healthy</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-white/5">
+              {data.lowStockAlerts.map((item) => (
+                <li key={item.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                    <p className="text-xs text-white/30 mt-0.5">
+                      Threshold: {item.lowStockThreshold} units
+                    </p>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full shrink-0
+                    ${item.stockQty === 0
+                      ? 'bg-red-500/20 text-red-400'
+                      : 'bg-orange-500/20 text-orange-400'
+                    }`}
+                  >
+                    {item.stockQty} left
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {data.lowStockAlerts.length > 0 && (
+            <div className="px-5 py-3 border-t border-white/10">
+              <button
+                onClick={() => navigate('/inventory')}
+                className="text-xs text-[#E8A120] font-medium flex items-center gap-1 hover:underline"
+              >
+                Manage Inventory <ArrowRightIcon size={12} />
+              </button>
+            </div>
+          )}
         </div>
 
       </div>
