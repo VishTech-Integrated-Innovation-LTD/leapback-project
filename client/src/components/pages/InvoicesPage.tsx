@@ -1,0 +1,183 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import {
+    MagnifyingGlassIcon,
+    ArrowUpRightIcon,
+} from '@phosphor-icons/react';
+import { getAllInvoices } from '../../api/invoices.api';
+import {
+    formatCurrency,
+    formatDate,
+    getInvoiceStatusColor,
+} from '../../utils/formatCurrency';
+
+// --------------------------------------------------------------------------
+// STATUS FILTER TABS
+// --------------------------------------------------------------------------
+const STATUS_TABS = [
+    { label: 'All', value: '' },
+    { label: 'Sent', value: 'sent' },
+    { label: 'Paid', value: 'paid' },
+    { label: 'Cancelled', value: 'cancelled' },
+];
+
+// --------------------------------------------------------------------------
+// INVOICES PAGE
+// --------------------------------------------------------------------------
+const InvoicesPage = () => {
+    const navigate = useNavigate();
+
+    const [activeTab, setActiveTab] = useState('');
+    const [search, setSearch] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['invoices', activeTab, search],
+        queryFn: () => getAllInvoices({
+            status: activeTab || undefined,
+            search: search || undefined,
+        }),
+    });
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        setSearch(searchInput);
+    };
+
+    const invoices = data?.invoices ?? [];
+
+    return (
+        <div className="space-y-5">
+
+            {/* Header  */}
+            <p className="text-white/40 text-sm">{data?.count ?? 0} total invoices</p>
+
+            {/* Filters */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+
+                {/* Status tabs */}
+                <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+                    {STATUS_TABS.map((tab) => (
+                        <button
+                            key={tab.value}
+                            onClick={() => setActiveTab(tab.value)}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
+                ${activeTab === tab.value
+                                    ? 'bg-[#E8A120] text-[#0A0F1E]'
+                                    : 'text-white/50 hover:text-white'
+                                }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Search */}
+                <form onSubmit={handleSearch} className="flex items-center gap-2">
+                    <div className="relative">
+                        <MagnifyingGlassIcon
+                            size={16}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Search by client name..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#E8A120]/50 w-56 transition-colors"
+                        />
+                    </div>
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={() => { setSearch(''); setSearchInput(''); }}
+                            className="text-white/30 hover:text-white text-xs transition-colors"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </form>
+
+            </div>
+
+            {/* Table  */}
+            <div className="bg-[#0D1526] border border-white/10 rounded-xl overflow-hidden">
+
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-48">
+                        <div className="w-7 h-7 border-2 border-[#E8A120] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : isError ? (
+                    <div className="flex items-center justify-center h-48 text-white/30 text-sm">
+                        Failed to load invoices. Please refresh.
+                    </div>
+                ) : invoices.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-white/30 text-sm gap-2">
+                        <p>No invoices found.</p>
+                        <p className="text-xs">Invoices are generated automatically when a quote is approved.</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-white/5">
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Invoice</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Client</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Quote Ref</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Amount</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Status</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Due Date</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Date</th>
+                                <th className="text-right text-xs font-medium text-white/30 px-5 py-3.5">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {invoices.map((invoice) => (
+                                <tr
+                                    key={invoice.id}
+                                    className="border-b border-white/5 hover:bg-white/2 transition-colors"
+                                >
+                                    <td className="px-5 py-4 font-medium text-white">
+                                        #{invoice.invoiceNumber}
+                                    </td>
+                                    <td className="px-5 py-4 text-white/60">
+                                        {invoice.client?.clientName ?? '—'}
+                                    </td>
+                                    <td className="px-5 py-4 text-white/40">
+                                        #{invoice.quote?.quoteNumber ?? '—'}
+                                    </td>
+                                    <td className="px-5 py-4 text-white font-medium">
+                                        {formatCurrency(invoice.grandTotal)}
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${getInvoiceStatusColor(invoice.status)}`}>
+                                            {invoice.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-4 text-white/40">
+                                        {invoice.dueDate ? formatDate(invoice.dueDate) : '—'}
+                                    </td>
+                                    <td className="px-5 py-4 text-white/40">
+                                        {formatDate(invoice.createdAt)}
+                                    </td>
+                                    <td className="px-5 py-4 text-right">
+                                        <button
+                                            onClick={() => navigate(`/invoices/${invoice.id}`)}
+                                            className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20 px-2.5 py-1.5 rounded-lg transition-colors ml-auto"
+                                        >
+                                            <ArrowUpRightIcon size={13} />
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+
+            </div>
+        </div>
+    );
+};
+
+export default InvoicesPage;

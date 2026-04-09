@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"
 
 
 import ProtectedRoute from "./ProtectedRoute"
@@ -10,6 +10,11 @@ import LoginPage from "../components/pages/LoginPage"
 import QuotesPage from "../components/pages/QuotesPage"
 import QuoteDetailPage from "../components/pages/QuoteDetailPage"
 import NewQuotePage from "../components/pages/NewQuotePage"
+import ClientsPage from "../components/pages/ClientsPage"
+import InventoryPage from "../components/pages/InventoryPage"
+import InvoicesPage from "../components/pages/InvoicesPage"
+import InvoiceDetailPage from "../components/pages/InvoiceDetailPage"
+import SettingsPage from "../components/pages/SettingsPage"
 
 
 // --------------------------------------------------------------------------------
@@ -35,6 +40,16 @@ const AppRouter = () => {
             <Route path="/quotes" element={<QuotesPage />} />
             <Route path="/quotes/:id" element={<QuoteDetailPage />} />
             <Route path="/quotes/new" element={<NewQuotePage />} />
+
+            <Route path="/invoices" element={<InvoicesPage />} />
+            <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
+
+            <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+
+   {/* Catch-all -: redirect unknown paths to dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
           </Route>
 
