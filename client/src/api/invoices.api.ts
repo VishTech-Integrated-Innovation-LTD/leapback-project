@@ -52,7 +52,38 @@ export const resendInvoiceEmail = async (
   return res.data;
 };
 
+// // GET /invoices/:id/download
+// // Returns the PDF file — open in new tab to trigger browser download
+// export const getInvoiceDownloadUrl = (id: string): string =>
+//   `${import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000'}/invoices/${id}/download`;
+
+
 // GET /invoices/:id/download
 // Returns the PDF file — open in new tab to trigger browser download
 export const getInvoiceDownloadUrl = (id: string): string =>
-  `${import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000'}/invoices/${id}/download`;
+  `${import.meta.env.VITE_API_URL ?? 'http://localhost:5000'}/invoices/${id}/download`;
+
+// GET /invoices/:id/download
+// Fetches the PDF as a blob with the auth token attached via axios interceptor
+// then triggers a browser download — plain <a href> won't work because
+// it opens a bare browser URL that doesn't send the Authorization header
+export const downloadInvoicePdf = async (
+  id:            string,
+  invoiceNumber: string
+): Promise<void> => {
+  const res = await api.get(`/invoices/${id}/download`, {
+    responseType: 'blob',
+  });
+
+  // Create a temporary object URL from the blob and programmatically click it
+  const url  = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+  const link = document.createElement('a');
+  link.href  = url;
+  link.setAttribute('download', `${invoiceNumber}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up the temporary URL and element
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

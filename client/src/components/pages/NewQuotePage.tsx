@@ -17,6 +17,19 @@ import type { InventoryItem, Client } from '../../types';
 
 
 // --------------------------------------------------------------------------
+// API ERROR HELPER
+// --------------------------------------------------------------------------
+interface ApiError {
+  response?: { data?: { message?: string } };
+}
+
+const getErrorMessage = (err: unknown): string => {
+  const apiErr = err as ApiError;
+  return apiErr?.response?.data?.message ?? 'Something went wrong';
+};
+
+
+// --------------------------------------------------------------------------
 // TYPES
 // --------------------------------------------------------------------------
 interface LineItem {
@@ -65,8 +78,8 @@ const AddClientModal = ({ onSuccess, onClose }: AddClientModalProps) => {
     try {
       const res = await createClient(form);
       onSuccess(res.client);
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to create client');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -101,7 +114,7 @@ const AddClientModal = ({ onSuccess, onClose }: AddClientModalProps) => {
               <input
                 type="text"
                 placeholder={placeholder}
-                value={(form as any)[key]}
+                value={form[key as keyof typeof form]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-[#E8A120]/50 transition-colors"
               />
@@ -218,8 +231,8 @@ const NewQuotePage = () => {
     onSuccess: (data) => {
       navigate(`/quotes/${data.quote.id}`);
     },
-    onError: (err: any) => {
-      setFormError(err?.response?.data?.message ?? 'Failed to save quote. Please try again.');
+    onError: (err) => {
+      setFormError(getErrorMessage(err));
     },
   });
 

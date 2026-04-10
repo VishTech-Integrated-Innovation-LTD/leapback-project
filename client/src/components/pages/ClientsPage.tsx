@@ -20,8 +20,54 @@ import {
   updateClient,
   deleteClient,
 } from '../../api/clients.api';
+import type { ClientDetailResponse } from '../../api/clients.api';
 import { formatCurrency, formatDate, getQuoteStatusColor, getInvoiceStatusColor } from '../../utils/formatCurrency';
 import type { Client } from '../../types';
+import api from '../../lib/axios';
+
+
+// --------------------------------------------------------------------------
+// TYPES
+// --------------------------------------------------------------------------
+// interface ClientStats {
+//   totalQuotes: number;
+//   totalInvoices: number;
+//   totalSpend: number;
+// }
+
+// ClientDetailData replaced by ClientDetailResponse from clients.api.ts
+
+
+// Form field keys — used to avoid (form as any)[key]
+type ClientFormKey = 'clientName' | 'email' | 'phone' | 'contactPerson' | 'address';
+
+interface ClientFormField {
+  label: string;
+  key: ClientFormKey;
+  placeholder: string;
+}
+
+const CLIENT_FORM_FIELDS: ClientFormField[] = [
+  { label: 'Client Name *', key: 'clientName', placeholder: 'e.g. Nexus Energy Ltd' },
+  { label: 'Email *', key: 'email', placeholder: 'info@nexusenergy.ng' },
+  { label: 'Phone', key: 'phone', placeholder: '+234 801 234 5678' },
+  { label: 'Contact Person', key: 'contactPerson', placeholder: 'e.g. Emeka Obi' },
+  { label: 'Address', key: 'address', placeholder: 'Lagos, Nigeria' },
+];
+
+
+// --------------------------------------------------------------------------
+// API ERROR HELPER
+// --------------------------------------------------------------------------
+interface ApiError {
+  response?: { data?: { message?: string } };
+}
+
+const getErrorMessage = (err: unknown): string => {
+  const apiErr = err as ApiError;
+  return apiErr?.response?.data?.message ?? 'Something went wrong';
+};
+
 
 // --------------------------------------------------------------------------
 // ADD / EDIT CLIENT MODAL
@@ -32,8 +78,10 @@ interface ClientModalProps {
   onClose: () => void;
 }
 
+type ClientForm = Record<ClientFormKey, string>;
+
 const ClientModal = ({ client, onSuccess, onClose }: ClientModalProps) => {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ClientForm>({
     clientName: client?.clientName ?? '',
     email: client?.email ?? '',
     phone: client?.phone ?? '',
@@ -59,8 +107,8 @@ const ClientModal = ({ client, onSuccess, onClose }: ClientModalProps) => {
         await createClient(form);
       }
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Something went wrong');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -85,19 +133,14 @@ const ClientModal = ({ client, onSuccess, onClose }: ClientModalProps) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {[
-            { label: 'Client Name *', key: 'clientName', placeholder: 'e.g. Nexus Energy Ltd' },
-            { label: 'Email *', key: 'email', placeholder: 'info@nexusenergy.ng' },
-            { label: 'Phone', key: 'phone', placeholder: '+234 801 234 5678' },
-            { label: 'Contact Person', key: 'contactPerson', placeholder: 'e.g. Emeka Obi' },
-            { label: 'Address', key: 'address', placeholder: 'Lagos, Nigeria' },
-          ].map(({ label, key, placeholder }) => (
+          {CLIENT_FORM_FIELDS.map(({ label, key, placeholder }) => (
             <div key={key}>
               <label className="block text-xs text-white/40 mb-1.5">{label}</label>
               <input
                 type={key === 'email' ? 'email' : 'text'}
                 placeholder={placeholder}
-                value={(form as any)[key]}
+                value={(form)[key]}
+                // value={form[key as keyof typeof form]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-[#E8A120]/50 transition-colors"
               />
@@ -139,10 +182,9 @@ interface ClientDetailProps {
 }
 
 const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) => {
-  const { data } = useQuery({
+  const { data } = useQuery<ClientDetailResponse>({
     queryKey: ['client', client.id],
     queryFn: async () => {
-      const { default: api } = await import('../../lib/axios');
       const res = await api.get(`/clients/${client.id}`);
       return res.data;
     },
@@ -150,7 +192,9 @@ const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) 
 
   const quotes = data?.quotes ?? [];
   const invoices = data?.invoices ?? [];
-  const stats = data?.stats ?? {};
+  // const stats = data?.stats ?? {};
+  const stats = data?.stats ?? { totalQuotes: 0, totalInvoices: 0, totalSpend: 0 };
+
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
@@ -201,7 +245,7 @@ const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) 
           <div className="space-y-2.5">
             {client.contactPerson && (
               <div className="flex items-center gap-2.5 text-sm">
-                <UserIcon size={14} className="text-white/30 flex-shrink-0" />
+                <UserIcon size={14} className="text-white/30 shrink-0" />
                 <span className="text-white/70">{client.contactPerson}</span>
               </div>
             )}
@@ -245,7 +289,7 @@ const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) 
                 Recent Quotes
               </div>
               <div className="space-y-2">
-                {quotes.slice(0, 4).map((q: any) => (
+                {quotes.slice(0, 4).map((q) => (
                   <div key={q.id} className="flex items-center justify-between bg-white/3 rounded-lg px-3 py-2.5">
                     <span className="text-white text-xs font-medium">#{q.quoteNumber}</span>
                     <span className="text-white/40 text-xs">{formatCurrency(q.grandTotal)}</span>
@@ -267,7 +311,7 @@ const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) 
                 Recent Invoices
               </div>
               <div className="space-y-2">
-                {invoices.slice(0, 4).map((inv: any) => (
+                {invoices.slice(0, 4).map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between bg-white/3 rounded-lg px-3 py-2.5">
                     <span className="text-white text-xs font-medium">#{inv.invoiceNumber}</span>
                     <span className="text-white/40 text-xs">{formatCurrency(inv.grandTotal)}</span>

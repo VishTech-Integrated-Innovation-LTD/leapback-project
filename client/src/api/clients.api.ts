@@ -1,6 +1,24 @@
 import api from '../lib/axios';
-import type { Client, CreateClientPayload, UpdateClientPayload } from '../types';
+import type { Client, CreateClientPayload, Invoice, Quote, UpdateClientPayload } from '../types';
 
+
+// --------------------------------------------------------------------------
+// CLIENT STATS
+// Returned alongside client detail — matches the backend response shape
+// --------------------------------------------------------------------------
+export interface ClientStats {
+  totalQuotes: number;
+  totalInvoices: number;
+  totalSpend: number;
+}
+
+export interface ClientDetailResponse {
+  client: Client;
+  quotes: Quote[];
+  invoices: Invoice[];
+  stats: ClientStats;
+  message: string;
+}
 
 
 // --------------------------------------------------------------------------
@@ -18,7 +36,7 @@ export const getAllClients = async (params?: {
 // GET /clients/:id
 export const getClientById = async (
   id: string
-): Promise<{ client: Client; quotes: any[]; invoices: any[]; stats: any }> => {
+): Promise<ClientDetailResponse> => {
   const res = await api.get(`/clients/${id}`);
   return res.data;
 };

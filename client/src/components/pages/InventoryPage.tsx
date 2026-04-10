@@ -20,14 +20,15 @@ import {
 import { formatCurrency } from '../../utils/formatCurrency';
 import type { InventoryItem, InventoryType, AvailabilityStatus } from '../../types';
 
+
 // --------------------------------------------------------------------------
 // STOCK STATUS BADGE
 // --------------------------------------------------------------------------
 const StockBadge = ({ item }: { item: InventoryItem }) => {
   if (item.type === 'service') {
     const map: Record<AvailabilityStatus, string> = {
-      available:   'bg-green-500/10 text-green-400',
-      busy:        'bg-yellow-500/10 text-yellow-400',
+      available: 'bg-green-500/10 text-green-400',
+      busy: 'bg-yellow-500/10 text-yellow-400',
       unavailable: 'bg-red-500/10 text-red-400',
     };
     return (
@@ -39,34 +40,48 @@ const StockBadge = ({ item }: { item: InventoryItem }) => {
 
   // Product
   const qty = item.stockQty ?? 0;
-  if (qty === 0)                        return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-500/10 text-red-400">Out of Stock</span>;
-  if (qty <= item.lowStockThreshold)    return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400">Low Stock</span>;
+  if (qty === 0) return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-500/10 text-red-400">Out of Stock</span>;
+  if (qty <= item.lowStockThreshold) return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400">Low Stock</span>;
   if (qty <= item.lowStockThreshold * 2) return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-400">Medium</span>;
   return <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-500/10 text-green-400">In Stock</span>;
 };
+
+
+// --------------------------------------------------------------------------
+// API ERROR HELPER
+// --------------------------------------------------------------------------
+interface ApiError {
+  response?: { data?: { message?: string } };
+}
+
+const getErrorMessage = (err: unknown): string => {
+  const apiErr = err as ApiError;
+  return apiErr?.response?.data?.message ?? 'Something went wrong';
+};
+
 
 // --------------------------------------------------------------------------
 // ADD / EDIT ITEM MODAL
 // --------------------------------------------------------------------------
 interface ItemModalProps {
-  item?:     InventoryItem;
+  item?: InventoryItem;
   onSuccess: () => void;
-  onClose:   () => void;
+  onClose: () => void;
 }
 
 const ItemModal = ({ item, onSuccess, onClose }: ItemModalProps) => {
   const isEditing = !!item;
   const [form, setForm] = useState({
-    name:               item?.name               ?? '',
-    type:               item?.type               ?? 'product' as InventoryType,
-    category:           item?.category           ?? '',
-    unitPrice:          item?.unitPrice           ?? 0,
-    itemCode:           item?.itemCode           ?? '',
-    stockQty:           item?.stockQty           ?? 0,
-    lowStockThreshold:  item?.lowStockThreshold  ?? 5,
+    name: item?.name ?? '',
+    type: item?.type ?? 'product' as InventoryType,
+    category: item?.category ?? '',
+    unitPrice: item?.unitPrice ?? 0,
+    itemCode: item?.itemCode ?? '',
+    stockQty: item?.stockQty ?? 0,
+    lowStockThreshold: item?.lowStockThreshold ?? 5,
     availabilityStatus: item?.availabilityStatus ?? 'available' as AvailabilityStatus,
   });
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,8 +102,8 @@ const ItemModal = ({ item, onSuccess, onClose }: ItemModalProps) => {
         });
       }
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Something went wrong');
+    } catch (err) {
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false);
     }
@@ -220,8 +235,8 @@ const ItemModal = ({ item, onSuccess, onClose }: ItemModalProps) => {
                 onChange={(e) => setForm((p) => ({ ...p, availabilityStatus: e.target.value as AvailabilityStatus }))}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-[#E8A120]/50 transition-colors appearance-none"
               >
-                <option value="available"   className="bg-[#0D1526]">Available</option>
-                <option value="busy"        className="bg-[#0D1526]">Busy</option>
+                <option value="available" className="bg-[#0D1526]">Available</option>
+                <option value="busy" className="bg-[#0D1526]">Busy</option>
                 <option value="unavailable" className="bg-[#0D1526]">Unavailable</option>
               </select>
             </div>
@@ -253,14 +268,14 @@ const ItemModal = ({ item, onSuccess, onClose }: ItemModalProps) => {
 // RESTOCK MODAL
 // --------------------------------------------------------------------------
 interface RestockModalProps {
-  item:      InventoryItem;
+  item: InventoryItem;
   onSuccess: () => void;
-  onClose:   () => void;
+  onClose: () => void;
 }
 
 const RestockModal = ({ item, onSuccess, onClose }: RestockModalProps) => {
-  const [qty,     setQty]     = useState(1);
-  const [error,   setError]   = useState('');
+  const [qty, setQty] = useState(1);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRestock = async () => {
@@ -269,8 +284,8 @@ const RestockModal = ({ item, onSuccess, onClose }: RestockModalProps) => {
     try {
       await restockInventoryItem(item.id, qty);
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to restock');
+    } catch (err) {
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false);
     }
@@ -332,32 +347,33 @@ const RestockModal = ({ item, onSuccess, onClose }: RestockModalProps) => {
 // --------------------------------------------------------------------------
 // INVENTORY PAGE
 // --------------------------------------------------------------------------
-const CATEGORIES = ['All', 'Solar', 'IT', 'Services', 'Energy'];
+// const CATEGORIES = ['All', 'Solar', 'IT', 'Services', 'Energy'];
+
 
 const InventoryPage = () => {
   const queryClient = useQueryClient();
 
-  const [search,       setSearch]       = useState('');
-  const [searchInput,  setSearchInput]  = useState('');
-  const [category,     setCategory]     = useState('');
-  const [typeFilter,   setTypeFilter]   = useState('');
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [category, setCategory] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editItem,     setEditItem]     = useState<InventoryItem | null>(null);
-  const [restockItem,  setRestockItem]  = useState<InventoryItem | null>(null);
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [restockItem, setRestockItem] = useState<InventoryItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['inventory', search, category, typeFilter],
-    queryFn:  () => getAllInventory({
-      search:   search   || undefined,
+    queryFn: () => getAllInventory({
+      search: search || undefined,
       category: category || undefined,
-      type:     typeFilter || undefined,
+      type: typeFilter || undefined,
     }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteInventoryItem(id),
-    onSuccess:  () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       setDeleteTarget(null);
     },
@@ -428,8 +444,26 @@ const InventoryPage = () => {
         </form>
 
         {/* Category filter */}
-        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+        {/* <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
           {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat === 'All' ? '' : cat)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors
+                ${(cat === 'All' ? '' : cat) === category
+                  ? 'bg-[#E8A120] text-[#0A0F1E]'
+                  : 'text-white/50 hover:text-white'
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div> */}
+
+        {/* Category filter — derived dynamically from inventory data */}
+        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1 flex-wrap">
+          {/* {['All', ...Array.from(new Set((data?.items ?? []).map((i) => i.category).filter(Boolean)))].map((cat) => ( */}
+          {(['All', ...Array.from(new Set((data?.items ?? []).map((i: InventoryItem) => i.category).filter((c): c is string => c !== null && c !== '')))] as string[]).map((cat: string) => (
             <button
               key={cat}
               onClick={() => setCategory(cat === 'All' ? '' : cat)}
@@ -499,7 +533,7 @@ const InventoryPage = () => {
                         ${item.type === 'product' ? 'bg-blue-500/10' : 'bg-purple-500/10'}`}>
                         {item.type === 'product'
                           ? <PackageIcon size={14} className="text-blue-400" />
-                          : <WrenchIcon  size={14} className="text-purple-400" />
+                          : <WrenchIcon size={14} className="text-purple-400" />
                         }
                       </div>
                       <div>

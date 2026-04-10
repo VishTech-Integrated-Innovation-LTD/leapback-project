@@ -1,4 +1,4 @@
-import { useState }             from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   PlusIcon,
@@ -14,18 +14,37 @@ import { getAllUsers, registerUser, updateUser, deleteUser } from '../../api/use
 import { useAuthStore } from '../../store/authStore';
 import type { User as UserType } from '../../types';
 
+
+// --------------------------------------------------------------------------
+// API ERROR HELPER
+// --------------------------------------------------------------------------
+interface ApiError {
+  response?: { data?: { message?: string } };
+}
+
+const getErrorMessage = (err: unknown): string => {
+  const apiErr = err as ApiError;
+  return apiErr?.response?.data?.message ?? 'Something went wrong';
+};
+
+// Typed form field keys for AddStaffModal
+type AddStaffFormKey = 'name' | 'email' | 'password';
+
+
 // --------------------------------------------------------------------------
 // ADD STAFF MODAL
 // --------------------------------------------------------------------------
 interface AddStaffModalProps {
   onSuccess: () => void;
-  onClose:   () => void;
+  onClose: () => void;
 }
 
 const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +60,8 @@ const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
     try {
       await registerUser(form);
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to create staff member');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -64,18 +83,19 @@ const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
           </p>
         )}
 
+
         <form onSubmit={handleSubmit} className="space-y-3">
           {[
-            { label: 'Full Name *',  key: 'name',     type: 'text',     placeholder: 'e.g. Temi Okafor'       },
-            { label: 'Email *',      key: 'email',    type: 'email',    placeholder: 'temi@leapback.ng'        },
-            { label: 'Password *',   key: 'password', type: 'password', placeholder: 'Min. 8 characters'       },
+            { label: 'Full Name *', key: 'name', type: 'text', placeholder: 'e.g. Temi Okafor' },
+            { label: 'Email *', key: 'email', type: 'email', placeholder: 'temi@leapback.ng' },
+            { label: 'Password *', key: 'password', type: 'password', placeholder: 'Min. 8 characters' },
           ].map(({ label, key, type, placeholder }) => (
             <div key={key}>
               <label className="block text-xs text-white/40 mb-1.5">{label}</label>
               <input
                 type={type}
                 placeholder={placeholder}
-                value={(form as any)[key]}
+                value={form[key as AddStaffFormKey]}
                 onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-[#E8A120]/50 transition-colors"
               />
@@ -108,18 +128,18 @@ const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
 // EDIT STAFF MODAL
 // --------------------------------------------------------------------------
 interface EditStaffModalProps {
-  user:      UserType;
+  user: UserType;
   onSuccess: () => void;
-  onClose:   () => void;
+  onClose: () => void;
 }
 
 const EditStaffModal = ({ user, onSuccess, onClose }: EditStaffModalProps) => {
   const [form, setForm] = useState({
-    name:     user.name,
-    email:    user.email,
+    name: user.name,
+    email: user.email,
     password: '',
   });
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,13 +155,13 @@ const EditStaffModal = ({ user, onSuccess, onClose }: EditStaffModalProps) => {
     setLoading(true);
     try {
       await updateUser(user.id, {
-        name:     form.name,
-        email:    form.email,
+        name: form.name,
+        email: form.email,
         ...(form.password && { password: form.password }),
       });
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to update staff member');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -224,16 +244,16 @@ const EditStaffModal = ({ user, onSuccess, onClose }: EditStaffModalProps) => {
 // SETTINGS PAGE
 // --------------------------------------------------------------------------
 const SettingsPage = () => {
-  const queryClient       = useQueryClient();
+  const queryClient = useQueryClient();
   const { user: authUser } = useAuthStore();
 
-  const [showAddModal,  setShowAddModal]  = useState(false);
-  const [editStaff,     setEditStaff]     = useState<UserType | null>(null);
-  const [deleteTarget,  setDeleteTarget]  = useState<UserType | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editStaff, setEditStaff] = useState<UserType | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserType | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn:  getAllUsers,
+    queryFn: getAllUsers,
   });
 
   // Toggle active/inactive
@@ -246,7 +266,7 @@ const SettingsPage = () => {
   // Delete staff
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteUser(id),
-    onSuccess:  () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteTarget(null);
     },
@@ -276,13 +296,13 @@ const SettingsPage = () => {
         {/* Read-only display — editable via .env */}
         <div className="space-y-3">
           {[
-            { label: 'Company Name',       value: import.meta.env.VITE_COMPANY_NAME    ?? 'Leapback'                        },
-            { label: 'Company Email',      value: import.meta.env.VITE_COMPANY_EMAIL   ?? 'info@leapback.ng'                },
-            { label: 'Company Phone',      value: import.meta.env.VITE_COMPANY_PHONE   ?? '+234 800 000 0000'               },
-            { label: 'Company Address',    value: import.meta.env.VITE_COMPANY_ADDRESS ?? 'Lagos, Nigeria'                  },
-            { label: 'Bank',               value: import.meta.env.VITE_COMPANY_BANK    ?? 'GTBank'                          },
-            { label: 'Account Number',     value: import.meta.env.VITE_COMPANY_ACCOUNT ?? '0123456789'                      },
-            { label: 'Invoice Footer',     value: import.meta.env.VITE_INVOICE_FOOTER  ?? 'Thank you for your business.'    },
+            { label: 'Company Name', value: import.meta.env.VITE_COMPANY_NAME ?? 'Leapback' },
+            { label: 'Company Email', value: import.meta.env.VITE_COMPANY_EMAIL ?? 'info@leapback.ng' },
+            { label: 'Company Phone', value: import.meta.env.VITE_COMPANY_PHONE ?? '+234 800 000 0000' },
+            { label: 'Company Address', value: import.meta.env.VITE_COMPANY_ADDRESS ?? 'Lagos, Nigeria' },
+            { label: 'Bank', value: import.meta.env.VITE_COMPANY_BANK ?? 'GTBank' },
+            { label: 'Account Number', value: import.meta.env.VITE_COMPANY_ACCOUNT ?? '0123456789' },
+            { label: 'Invoice Footer', value: import.meta.env.VITE_INVOICE_FOOTER ?? 'Thank you for your business.' },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
               <span className="text-white/40 text-sm">{label}</span>
@@ -390,7 +410,7 @@ const SettingsPage = () => {
                         title={user.isActive ? 'Deactivate' : 'Activate'}
                       >
                         {user.isActive
-                          ? <XCircleIcon    size={15} weight="fill" />
+                          ? <XCircleIcon size={15} weight="fill" />
                           : <CheckCircleIcon size={15} weight="fill" />
                         }
                       </button>

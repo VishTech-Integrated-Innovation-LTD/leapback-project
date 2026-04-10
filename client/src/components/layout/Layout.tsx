@@ -6,8 +6,14 @@ import api from '../../lib/axios'
 
 
 type InventoryItem = {
-  type: string;
-  stockQty: number | null;
+  // type: string;
+  // stockQty: number | null;
+  // lowStockThreshold: number;
+
+  id:                string;
+  name:              string;
+  type:              string;
+  stockQty:          number;
   lowStockThreshold: number;
 };
 
@@ -47,12 +53,12 @@ const Layout = () => {
   const pendingQuotesCount = quotesData?.count ?? 0;
 
   // Count items where stockQty is at or below lowStockThreshold
-  const lowStockCount = (inventoryData?.items ?? []).filter(
+  const lowStockItems = (inventoryData?.items ?? []).filter(
     (item) =>
       item.type === 'product' &&
       item.stockQty !== null &&
       item.stockQty <= item.lowStockThreshold
-  ).length;
+  );
 
 
   return (
@@ -62,7 +68,10 @@ const Layout = () => {
       <Sidebar pendingQuotesCount={pendingQuotesCount} />
 
       {/* Fixed topbar - offset by sidebar width */}
-      <Topbar lowStockCount={lowStockCount} />
+      <Topbar 
+      lowStockCount={lowStockItems.length}
+      lowStockItems={lowStockItems}
+       />
 
       {/* Page content - offset by sidebar width and topbar height */}
       <main className="ml-64 pt-16 min-h-screen">

@@ -15,7 +15,7 @@ import {
   getInvoiceById,
   updateInvoiceStatus,
   resendInvoiceEmail,
-  getInvoiceDownloadUrl,
+  downloadInvoicePdf,
 } from '../../api/invoices.api';
 import {
   formatCurrency,
@@ -27,18 +27,20 @@ import {
 // INVOICE DETAIL PAGE
 // --------------------------------------------------------------------------
 const InvoiceDetailPage = () => {
-  const { id }        = useParams<{ id: string }>();
-  const navigate      = useNavigate();
-  const queryClient   = useQueryClient();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [showMarkPaid,   setShowMarkPaid]   = useState(false);
-  const [showCancel,     setShowCancel]     = useState(false);
-  const [resendSuccess,  setResendSuccess]  = useState(false);
+  const [showMarkPaid, setShowMarkPaid] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['invoice', id],
-    queryFn:  () => getInvoiceById(id!),
-    enabled:  !!id,
+    queryFn: () => getInvoiceById(id!),
+    enabled: !!id,
   });
 
   // Mark paid / cancelled mutation
@@ -118,15 +120,19 @@ const InvoiceDetailPage = () => {
         <div className="flex items-center gap-2 flex-wrap">
 
           {/* Download PDF */}
-          <a
-            href={getInvoiceDownloadUrl(invoice.id)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-white/60 border border-white/10 hover:border-white/20 hover:text-white px-3 py-2 rounded-lg transition-colors"
+          <button
+            onClick={async () => {
+              setDownloading(true);
+              try { await downloadInvoicePdf(invoice.id, invoice.invoiceNumber); }
+              catch { /* error handled silently */ }
+              finally { setDownloading(false); }
+            }}
+            disabled={downloading}
+            className="flex items-center gap-1.5 text-sm text-white/60 border border-white/10 hover:border-white/20 hover:text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
           >
             <DownloadSimpleIcon size={15} />
-            Download PDF
-          </a>
+            {downloading ? 'Downloading...' : 'Download PDF'}
+          </button>
 
           {/* Resend email */}
           <button
@@ -191,11 +197,10 @@ const InvoiceDetailPage = () => {
             <CalendarBlankIcon size={12} />
             Due Date
           </div>
-          <p className={`text-sm font-medium ${
-            invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.status === 'sent'
+          <p className={`text-sm font-medium ${invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.status === 'sent'
               ? 'text-red-400'
               : 'text-white'
-          }`}>
+            }`}>
             {invoice.dueDate ? formatDate(invoice.dueDate) : '—'}
           </p>
         </div>

@@ -53,7 +53,7 @@ const LoginPage = () => {
       // Redirect to dashboard on success
       navigate('/dashboard');
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
+      if (error instanceof AxiosError) {           
         const message =
           error.response?.data?.message ?? 'Something went wrong. Please try again.';
         setApiError(message);
