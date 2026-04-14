@@ -9,6 +9,8 @@ import { useState } from "react";
 // --------------------------------------------------------------------------
 interface SidebarProps {
     pendingQuotesCount?: number;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
 interface NavItem {
@@ -76,7 +78,7 @@ const LogoutModal = ({ onConfirm, onCancel }: LogoutModalProps) => (
 // SIDEBAR
 // Fixed left panel
 // --------------------------------------------------------------------------
-const Sidebar = ({ pendingQuotesCount = 0 }: SidebarProps) => {
+const Sidebar = ({ pendingQuotesCount = 0, isOpen, onClose }: SidebarProps) => {
     // const Sidebar = () => {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
@@ -160,14 +162,37 @@ const Sidebar = ({ pendingQuotesCount = 0 }: SidebarProps) => {
 
     return (
         <>
-            <aside className="flex flex-col h-screen w-64 bg-[#0A0F1E] border-r border-white/10 fixed left-0 top-0 z-40">
+            {/* Mobile backdrop */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                    onClick={onClose}
+                />
+            )}
+
+            <aside
+                className={`
+          flex flex-col h-screen w-64 bg-[#0A0F1E] border-r border-white/10
+          fixed left-0 top-0 z-40 transition-transform duration-300
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0
+        `}
+            >
 
                 {/* ----- Brand --------------------------------------------------- */}
-                <div className="px-6 py-5 border-b border-white/10">
-                    <h1 className="text-[#E8A120] font-bold text-xl tracking-widest">
-                        LEAPBACK
-                    </h1>
-                    <p className="text-white/30 text-xs mt-0.5">E-Quotation v1.0</p>
+                <div className="px-6 py-5 border-b border-white/10 flex items-center gap-3">
+                    {/* Logo from public folder */}
+                    <img
+                        src="/logo-favicon.png"
+                        className="w-9 h-9 object-contain"
+                    />
+
+                    <div>
+                        <h1 className="text-[#E8A120] font-bold text-xl tracking-widest">
+                            LEAPBACK
+                        </h1>
+                        <p className="text-white/30 text-xs mt-0.5">E-Quotation v1.0</p>
+                    </div>
                 </div>
 
                 {/* ----- User Avatar --------------------------------------------------- */}
@@ -198,6 +223,7 @@ const Sidebar = ({ pendingQuotesCount = 0 }: SidebarProps) => {
                                     <li key={item.path}>
                                         <NavLink
                                             to={item.path}
+                                            onClick={onClose}
                                             className={({ isActive }) =>
                                                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
                       ${isActive

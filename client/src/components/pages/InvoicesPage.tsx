@@ -118,7 +118,8 @@ const InvoicesPage = () => {
                         <p className="text-xs">Invoices are generated automatically when a quote is approved.</p>
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-187.5">
+                    {/* <table className="w-full text-sm"> */}
                         <thead>
                             <tr className="border-b border-white/5">
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Invoice</th>
@@ -173,6 +174,7 @@ const InvoicesPage = () => {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
 
             </div>

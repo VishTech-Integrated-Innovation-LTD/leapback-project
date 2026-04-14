@@ -209,7 +209,8 @@ const QuotesPage = () => {
                         </button>
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-175">
+                    {/* <table className="w-full text-sm"> */}
                         <thead>
                             <tr className="border-b border-white/5">
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Quote ID</th>
@@ -298,6 +299,7 @@ const QuotesPage = () => {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
 
             </div>

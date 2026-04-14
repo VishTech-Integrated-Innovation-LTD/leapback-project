@@ -3,6 +3,7 @@ import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import { useQuery } from '@tanstack/react-query'
 import api from '../../lib/axios'
+import { useState }  from 'react';
 
 
 type InventoryItem = {
@@ -29,6 +30,8 @@ type InventoryResponse = {
 // (for topbar bell) once and shares them across the whole layout
 // --------------------------------------------------------------------------
 const Layout = () => {
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch pending quotes count for the sidebar badge
   const { data: quotesData } = useQuery({
@@ -65,17 +68,25 @@ const Layout = () => {
     <div className='min-h-screen bg-[#0A0F1E]'>
 
       {/* Fixed sidebar */}
-      <Sidebar pendingQuotesCount={pendingQuotesCount} />
+      <Sidebar 
+      pendingQuotesCount={pendingQuotesCount}
+      isOpen={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+       />
 
       {/* Fixed topbar - offset by sidebar width */}
       <Topbar 
       lowStockCount={lowStockItems.length}
       lowStockItems={lowStockItems}
+      onMenuToggle={() => setSidebarOpen((v) => !v)}
        />
 
       {/* Page content - offset by sidebar width and topbar height */}
-      <main className="ml-64 pt-16 min-h-screen">
-        <div className="p-6">
+      {/* <main className="ml-64 pt-16 min-h-screen"> */}
+        {/* <div className="p-6"> */}
+      {/* On mobile: no left margin. On desktop: offset by sidebar width */}
+        <main className="pt-16 min-h-screen lg:ml-64">
+        <div className="p-4 lg:p-6">
           <Outlet />
         </div>
       </main>
