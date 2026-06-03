@@ -126,7 +126,7 @@ const InvoicesPage = () => {
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Client</th>
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Quote Ref</th>
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Amount</th>
-                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Status</th>
+                                <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Payment Status</th>
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Due Date</th>
                                 <th className="text-left text-xs font-medium text-white/30 px-5 py-3.5">Date</th>
                                 <th className="text-right text-xs font-medium text-white/30 px-5 py-3.5">Action</th>
