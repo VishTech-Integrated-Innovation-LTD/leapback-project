@@ -4,12 +4,6 @@ import app from './app';
 // Determine the port from environment variable or fallback to 5000
 const PORT = process.env.PORT || 5000;
 
-// Start the server and listen for incoming connections
-app.listen(PORT, () => {
-  console.log(`Leapback API is running on port ${PORT}`);
-  console.log(`Environment : ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend URL: ${process.env.VITE_FRONTEND_URL || '(not set)'}`);
-});
 
 // Basic health-check / welcome route (useful for testing & monitoring)
 app.get(['', '/', '/health', '/api'], (_req, res) => {
@@ -29,6 +23,17 @@ app.use((_req, res) => {
     message: 'Route not found',
   });
 });
+
+
+// Start the server and listen for incoming connections
+app.listen(PORT, () => {
+  console.log(`Leapback API is running on port ${PORT}`);
+  console.log(`Environment : ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Frontend URL: ${process.env.VITE_FRONTEND_URL || '(not set)'}`);
+});
+
+
+
 
 
 

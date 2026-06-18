@@ -7,8 +7,10 @@ import AppRouter from "./routes/AppRouter"
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      // staleTime: 5 * 60 * 1000,
+      staleTime: 30 * 1000,  // 30s - data refreshes more frequently
       retry: 1,
+      refetchOnWindowFocus: true
     },
   },
 });

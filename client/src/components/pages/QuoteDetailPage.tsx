@@ -9,29 +9,77 @@ import {
     FilePdfIcon,
     UserIcon,
     CalendarBlankIcon,
+    DownloadSimpleIcon,
+    ShareNetworkIcon,
 } from '@phosphor-icons/react';
-import { getQuoteById, updateQuoteStatus } from '../../api/quotes.api';
+import { getQuoteById, updateQuoteStatus, downloadQuotePdf } from '../../api/quotes.api';
 import {
     formatCurrency,
     formatDate,
     getQuoteStatusColor,
 } from '../../utils/formatCurrency';
+import { ShareWithPdfModal } from '../ShareWithPdfModal';
+import api from '../../lib/axios';
+
+// Fetch quote PDF as Blob (uses axios interceptor for auth header)
+const fetchQuotePdfBlob = async (quoteId: string): Promise<Blob> => {
+    const res = await api.get(`/quotes/${quoteId}/download`, { responseType: 'blob' });
+    return res.data as Blob;
+};
+
+// --------------------------------------------------------------------------
+// ERROR HELPER
+// --------------------------------------------------------------------------
+
+// interface ApiError { response?: { data?: { message?: string } } }
+// const getErrorMessage = (err: unknown): string =>
+//     (err as ApiError)?.response?.data?.message ?? 'Failed to approve quote';
+interface ApiError {
+    response?: {
+        data?: {
+            message?: string;
+        };
+        message?: string;
+    };
+    message?: string;
+}
+const getErrorMessage = (err: unknown): string => {
+    // Type guard to check if error has the expected structure
+    const isApiError = (error: unknown): error is ApiError => {
+        return typeof error === 'object' && error !== null;
+    };
+
+    if (isApiError(err)) {
+        return (
+            err?.response?.data?.message ||
+            err?.response?.message ||
+            err?.message ||
+            'Failed to approve quote'
+        );
+    }
+
+    return 'Failed to approve quote';
+};
+
 
 
 // --------------------------------------------------------------------------
 // QUOTE DETAIL PAGE
 // --------------------------------------------------------------------------
-
 const QuoteDetailPage = () => {
-    const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const queryClient = useQueryClient();
-    const [showApprove, setShowApprove] = useState(false);
+    const { id }         = useParams<{ id: string }>();
+    const navigate       = useNavigate();
+    const queryClient    = useQueryClient();
+
+    const [showApprove,  setShowApprove]  = useState(false);
+    const [showShare,    setShowShare]    = useState(false);
+    const [downloading,  setDownloading]  = useState(false);
+    const [error,        setError]        = useState<string>('');
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['quote', id],
-        queryFn: () => getQuoteById(id!),
-        enabled: !!id,
+        queryFn:  () => getQuoteById(id!),
+        enabled:  !!id,
     });
 
     const statusMutation = useMutation({
@@ -40,9 +88,26 @@ const QuoteDetailPage = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['quote', id] });
             queryClient.invalidateQueries({ queryKey: ['quotes'] });
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
             setShowApprove(false);
+            setError('');
+        },
+        onError: (err) => {
+            setError(getErrorMessage(err));
         },
     });
+
+    const handleApprove = () => {
+        setError('');
+        statusMutation.mutate('approved');
+    };
+
+    const closeModal = () => {
+        setShowApprove(false);
+        setError('');
+        statusMutation.reset();
+    };
 
     if (isLoading) {
         return (
@@ -56,24 +121,21 @@ const QuoteDetailPage = () => {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <p className="text-white/40 text-sm">Quote not found.</p>
-                <button
-                    onClick={() => navigate('/quotes')}
-                    className="text-[#E8A120] text-sm hover:underline"
-                >
+                <button onClick={() => navigate('/quotes')} className="text-[#E8A120] text-sm hover:underline">
                     ← Back to Quotes
                 </button>
             </div>
         );
     }
 
-    const quote = data.quote;
-
+    const quote     = data.quote;
+    const amountStr = Number(quote.grandTotal).toLocaleString('en-NG', { minimumFractionDigits: 2 });
 
     return (
         <div className="space-y-5 max-w-4xl">
 
             {/* Back + Header */}
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <button
                         onClick={() => navigate('/quotes')}
@@ -90,35 +152,66 @@ const QuoteDetailPage = () => {
                     </div>
                 </div>
 
-                {/* Actions — only shown on pending quotes */}
-                {quote.status === 'pending' && (
-                    <div className="flex items-center gap-2">
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-wrap">
+
+                    {/* Download PDF — only if PDF exists (quote has been submitted) */}
+                    {quote.pdfPath && (
                         <button
-                            onClick={() => statusMutation.mutate('rejected')}
-                            disabled={statusMutation.isPending}
-                            className="flex items-center gap-1.5 text-sm text-red-400 border border-red-400/20 hover:border-red-400/40 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                            onClick={async () => {
+                                setDownloading(true);
+                                try { await downloadQuotePdf(id!, quote.quoteNumber); }
+                                catch { /* silent */ }
+                                finally { setDownloading(false); }
+                            }}
+                            disabled={downloading}
+                            className="flex items-center gap-1.5 text-sm text-white/60 border border-white/10 hover:border-white/20 hover:text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
                         >
-                            <XCircleIcon size={16} weight="fill" />
-                            Reject
+                            <DownloadSimpleIcon size={15} />
+                            {downloading ? 'Downloading...' : 'Download PDF'}
                         </button>
+                    )}
+
+                    {/* Share — only if PDF exists */}
+                    {quote.pdfPath && (
                         <button
-                            onClick={() => setShowApprove(true)}
-                            disabled={statusMutation.isPending}
-                            className="flex items-center gap-1.5 text-sm bg-[#E8A120] text-[#0A0F1E] font-semibold px-4 py-2 rounded-lg hover:bg-[#E8A120]/90 transition-colors disabled:opacity-50"
+                            onClick={() => setShowShare(true)}
+                            className="flex items-center gap-1.5 text-sm text-[#E8A120]/80 hover:text-[#E8A120] border border-[#E8A120]/20 hover:border-[#E8A120]/40 px-3 py-2 rounded-lg transition-colors"
                         >
-                            <CheckCircleIcon size={16} weight="fill" />
-                            Approve Quote
+                            <ShareNetworkIcon size={15} />
+                            Share
                         </button>
-                    </div>
-                )}
+                    )}
+
+                    {/* Approve / Reject — pending quotes only */}
+                    {quote.status === 'pending' && (
+                        <>
+                            <button
+                                onClick={() => statusMutation.mutate('rejected')}
+                                disabled={statusMutation.isPending}
+                                className="flex items-center gap-1.5 text-sm text-red-400 border border-red-400/20 hover:border-red-400/40 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                <XCircleIcon size={16} weight="fill" />
+                                Reject
+                            </button>
+                            <button
+                                onClick={() => setShowApprove(true)}
+                                disabled={statusMutation.isPending}
+                                className="flex items-center gap-1.5 text-sm bg-[#E8A120] text-[#0A0F1E] font-semibold px-4 py-2 rounded-lg hover:bg-[#E8A120]/90 transition-colors disabled:opacity-50"
+                            >
+                                <CheckCircleIcon size={16} weight="fill" />
+                                Approve Quote
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Meta info */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-[#0D1526] border border-white/10 rounded-xl p-4">
                     <div className="flex items-center gap-2 text-white/40 text-xs mb-1.5">
-                        <UserIcon size={13} />
-                        Client
+                        <UserIcon size={13} /> Client
                     </div>
                     <p className="text-white font-medium text-sm">{quote.client?.clientName ?? '—'}</p>
                     <p className="text-white/40 text-xs mt-0.5">{quote.client?.email ?? ''}</p>
@@ -126,8 +219,7 @@ const QuoteDetailPage = () => {
 
                 <div className="bg-[#0D1526] border border-white/10 rounded-xl p-4">
                     <div className="flex items-center gap-2 text-white/40 text-xs mb-1.5">
-                        <CalendarBlankIcon size={13} />
-                        Created
+                        <CalendarBlankIcon size={13} /> Created
                     </div>
                     <p className="text-white font-medium text-sm">{formatDate(quote.createdAt)}</p>
                     <p className="text-white/40 text-xs mt-0.5">by {quote.creator?.name ?? '—'}</p>
@@ -136,8 +228,7 @@ const QuoteDetailPage = () => {
                 {quote.sentAt && (
                     <div className="bg-[#0D1526] border border-white/10 rounded-xl p-4">
                         <div className="flex items-center gap-2 text-white/40 text-xs mb-1.5">
-                            <FilePdfIcon size={13} />
-                            Sent to Client
+                            <FilePdfIcon size={13} /> Sent to Client
                         </div>
                         <p className="text-white font-medium text-sm">{formatDate(quote.sentAt)}</p>
                         <p className="text-white/40 text-xs mt-0.5">PDF emailed automatically</p>
@@ -204,11 +295,42 @@ const QuoteDetailPage = () => {
                 </div>
             )}
 
+            {/*  ========================= Share Modal  ============================= */}
+            {showShare && (
+                <ShareWithPdfModal
+                    title={`Quote #${quote.quoteNumber}`}
+                    ref={quote.quoteNumber}
+                    shareText={
+                        `Hi ${quote.client?.clientName ?? ''},\n\n` +
+                        `Please find your quote #${quote.quoteNumber} from Leapback.\n\n` +
+                        `Total: NGN ${amountStr}\n\n` +
+                        `Kindly review and let us know if you'd like to proceed.`
+                    }
+                    emailSubject={`Quote #${quote.quoteNumber} from Leapback`}
+                    emailBody={
+                        `Dear ${quote.client?.clientName ?? 'Client'},\n\n` +
+                        `Please find attached your quote #${quote.quoteNumber}.\n\n` +
+                        `Total: NGN ${amountStr}\n\n` +
+                        `Please review and let us know if you'd like to approve or have any questions.\n\n` +
+                        `Thank you,\nLeapback`
+                    }
+                    recipientEmail={quote.client?.email}
+                    fetchPdfBlob={() => fetchQuotePdfBlob(id!)}
+                    onClose={() => setShowShare(false)}
+                />
+            )}
 
-            {/* Approval Modal */}
+            {/* ==================== APPROVAL MODAL ==================== */}
             {showApprove && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
                     <div className="bg-[#0D1526] border border-white/10 rounded-2xl w-full max-w-sm p-6">
+
+  {/* ERROR MESSAGE */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                                {error}
+                            </div>
+                        )}
 
                         <div className="w-12 h-12 rounded-full bg-[#E8A120]/10 flex items-center justify-center mx-auto mb-4">
                             <CheckCircleIcon size={24} weight="fill" className="text-[#E8A120]" />
@@ -243,13 +365,14 @@ const QuoteDetailPage = () => {
 
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setShowApprove(false)}
+                                onClick={closeModal}
+                                disabled={statusMutation.isPending}
                                 className="flex-1 py-2.5 rounded-lg border border-white/10 text-white/60 text-sm hover:bg-white/5 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={() => statusMutation.mutate('approved')}
+                                onClick={handleApprove}
                                 disabled={statusMutation.isPending}
                                 className="flex-1 py-2.5 rounded-lg bg-[#E8A120] text-[#0A0F1E] text-sm font-semibold hover:bg-[#E8A120]/90 transition-colors disabled:opacity-60"
                             >
@@ -262,7 +385,7 @@ const QuoteDetailPage = () => {
             )}
 
         </div>
-    )
-}
+    );
+};
 
-export default QuoteDetailPage
+export default QuoteDetailPage;

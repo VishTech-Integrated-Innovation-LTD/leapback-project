@@ -4,6 +4,7 @@ import Topbar from './Topbar'
 import { useQuery } from '@tanstack/react-query'
 import api from '../../lib/axios'
 import { useState }  from 'react';
+import ToastContainer from '../ToastContainer'
 
 
 type InventoryItem = {
@@ -15,6 +16,7 @@ type InventoryItem = {
   name:              string;
   type:              string;
   stockQty:          number;
+  // stockQty:          number | null;
   lowStockThreshold: number;
 };
 
@@ -40,7 +42,9 @@ const Layout = () => {
       const res = await api.get('/quotes?status=pending');
       return res.data;
     },
-    staleTime: 60 * 1000,   // refresh every minute
+    // staleTime: 60 * 1000,   // refresh every minute
+    staleTime: 30 * 1000,   // refresh every 30 secs
+    refetchOnWindowFocus: true,
   });
 
   // Fetch low stock inventory items for the topbar bell
@@ -50,7 +54,9 @@ const Layout = () => {
       const res = await api.get('/inventory');
       return res.data;
     },
-    staleTime: 60 * 1000,
+    // staleTime: 60 * 1000,
+    staleTime: 30 * 1000,   // refresh every 30 secs
+    refetchOnWindowFocus: true,
   });
 
   const pendingQuotesCount = quotesData?.count ?? 0;
@@ -81,6 +87,7 @@ const Layout = () => {
       onMenuToggle={() => setSidebarOpen((v) => !v)}
        />
 
+      {/* Main Content */}
       {/* Page content - offset by sidebar width and topbar height */}
       {/* <main className="ml-64 pt-16 min-h-screen"> */}
         {/* <div className="p-6"> */}
@@ -90,6 +97,9 @@ const Layout = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Global Toast Container */}
+<ToastContainer />
 
     </div>
   )

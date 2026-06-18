@@ -38,13 +38,16 @@ const User = db_1.default.define('User', {
         type: sequelize_1.DataTypes.STRING, // String type for the user's password (hashed with bcrypt).
         allowNull: false,
     },
-    // All users of this internal tool are admins - only authorised Leapback staff can log in
-    userType: {
-        type: sequelize_1.DataTypes.ENUM('admin'),
+    // ==== Access control ===================================================
+    // chief_admin  → full access (edit quotes, manage staff, see all finance)
+    // admin        → approve/reject quotes, invoices, export data
+    // staff        → create/submit quotes, view own work
+    role: {
+        type: sequelize_1.DataTypes.ENUM('chief_admin', 'admin', 'staff'),
         allowNull: false,
-        defaultValue: 'admin',
+        defaultValue: 'staff',
     },
-    // Controls the Active / Inactive status shown on the Settings staff table in the prototype
+    // Controls the Active / Inactive status shown on the Settings staff table
     isActive: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,

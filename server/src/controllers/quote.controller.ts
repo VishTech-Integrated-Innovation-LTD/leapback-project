@@ -12,8 +12,7 @@ import { nextQuoteNumber } from '../utils/numbering';
 import { generatePDF } from '../services/pdf.service';
 import { sendQuoteEmail } from '../services/email.service';
 
-
-
+import { generateInvoiceForQuote } from './invoice.controller';
 
 
 // ==================================================================================
@@ -639,55 +638,200 @@ export const submitQuote = async (req: Request, res: Response, next: NextFunctio
 // - actual invoice generation and inventory deduction happen in the invoice controller
 // Body: { status: 'approved' | 'rejected' | 'cancelled' }
 // ===================================================================================
+
+// export const updateQuoteStatus = async (req: Request, res: Response, next: NextFunction) => {
+//     console.log("🔥🔥🔥 THIS IS THE NEW FUNCTION - v6 - IF YOU SEE THIS, IT WORKED 🔥🔥🔥");
+//     try {
+//         const { id } = req.params;
+//         const { status } = req.body;
+
+//         if (!id || typeof id !== 'string') {
+//             res.status(400).json({ message: 'Invalid or missing ID' });
+//             return;
+//         }
+
+//         // Only these three transitions are allowed from pending
+//         const allowedStatuses = ['approved', 'rejected', 'cancelled'];
+//         if (!status || !allowedStatuses.includes(status)) {
+//             res.status(400).json({
+//                 message: `Status must be one of: ${allowedStatuses.join(', ')}`,
+//             });
+//             return;
+//         }
+
+//         const quote = await Quote.findByPk(id);
+//         if (!quote) {
+//             res.status(404).json({ message: 'Quote not found' });
+//             return;
+//         }
+
+//         // Only pending quotes can have their status changed
+//         if (quote.status !== 'pending') {
+//             res.status(400).json({
+//                 message: `Only pending quotes can be approved or rejected. This quote is ${quote.status}`,
+//             });
+//             return;
+//         }
+
+//         // Set approvedAt timestamp if the quote is being approved
+//         await quote.update({
+//             status,
+//             ...(status === 'approved' && { approvedAt: new Date() }),
+//         });
+
+// // If approved, automatically generate the invoice
+//     // This is the core Quote-to-Invoice Engine — no manual step needed
+    
+//     if (status === 'approved') {
+//         const actorId = (req as any).user?.id ?? quote.createdBy;
+//       try {
+//         await generateInvoiceForQuote(quote.id, actorId);
+//       } catch (invoiceError: any) {
+//         // Log but don't fail the approval — quote is already approved
+//         console.error('Auto invoice generation failed:', invoiceError);
+//     return res.status(400).json({
+//       message: invoiceError?.message || 'Invoice generation failed'
+//     });  
+//     }
+//     }
+
+//        res.status(200).json({
+//       message: status === 'approved'
+//         ? 'Quote approved and invoice generated automatically'
+//         : `Quote ${status} successfully`,
+//       quote: {
+//         id:          quote.id,
+//         quoteNumber: quote.quoteNumber,
+//         status:      quote.status,
+//         approvedAt:  quote.approvedAt,
+//       },
+//     });
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+
 export const updateQuoteStatus = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-        if (!id || typeof id !== 'string') {
-            res.status(400).json({ message: 'Invalid or missing ID' });
-            return;
-        }
-
-        // Only these three transitions are allowed from pending
-        const allowedStatuses = ['approved', 'rejected', 'cancelled'];
-        if (!status || !allowedStatuses.includes(status)) {
-            res.status(400).json({
-                message: `Status must be one of: ${allowedStatuses.join(', ')}`,
-            });
-            return;
-        }
-
-        const quote = await Quote.findByPk(id);
-        if (!quote) {
-            res.status(404).json({ message: 'Quote not found' });
-            return;
-        }
-
-        // Only pending quotes can have their status changed
-        if (quote.status !== 'pending') {
-            res.status(400).json({
-                message: `Only pending quotes can be approved or rejected. This quote is ${quote.status}`,
-            });
-            return;
-        }
-
-        // Set approvedAt timestamp if the quote is being approved
-        await quote.update({
-            status,
-            ...(status === 'approved' && { approvedAt: new Date() }),
-        });
-
-        res.status(200).json({
-            message: `Quote ${status} successfully`,
-            quote: {
-                id: quote.id,
-                quoteNumber: quote.quoteNumber,
-                status: quote.status,
-                approvedAt: quote.approvedAt,
-            },
-        });
-    } catch (error) {
-        next(error);
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ message: 'Invalid or missing ID' });
     }
-}
+
+    const allowedStatuses = ['approved', 'rejected', 'cancelled'];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Status must be one of: ${allowedStatuses.join(', ')}`,
+      });
+    }
+
+    const quote = await Quote.findByPk(id);
+
+    if (!quote) {
+      return res.status(404).json({ message: 'Quote not found' });
+    }
+
+    if (quote.status !== 'pending') {
+      return res.status(400).json({
+        message: `Only pending quotes can be changed. Current: ${quote.status}`,
+      });
+    }
+
+    // update quote first (safe at this point)
+    await quote.update({
+      status,
+      ...(status === 'approved' && { approvedAt: new Date() }),
+    });
+
+    // -------------------------
+    // INVOICE GENERATION
+    // -------------------------
+    if (status === 'approved') {
+      const actorId = (req as any).user?.id ?? quote.createdBy;
+
+      try {
+        await generateInvoiceForQuote(quote.id, actorId);
+      } catch (invoiceError: any) {
+        console.error('Auto invoice generation failed:', invoiceError);
+
+        // ❌ IMPORTANT: revert status OR fail request
+        await quote.update({ status: 'pending', approvedAt: null });
+
+        return res.status(400).json({
+          message: invoiceError?.message || 'Invoice generation failed',
+        });
+      }
+    }
+
+    // ONLY ONE SUCCESS RESPONSE
+    return res.status(200).json({
+      message:
+        status === 'approved'
+          ? 'Quote approved and invoice generated successfully'
+          : `Quote ${status} successfully`,
+      quote: {
+        id: quote.id,
+        quoteNumber: quote.quoteNumber,
+        status: quote.status,
+        approvedAt: quote.approvedAt,
+      },
+    });
+
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
+
+
+
+// ==================================================================================
+// @desc   DOWNLOAD QUOTE PDF
+// @route  GET /quotes/:id/download
+// @access Private
+// Returns the stored PDF for a submitted/pending/approved quote
+// ==================================================================================
+export const downloadQuotePdf = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || typeof id !== 'string') {
+      res.status(400).json({ message: 'Invalid or missing ID' });
+      return;
+    }
+
+    const quote = await Quote.findByPk(id, {
+      attributes: ['id', 'quoteNumber', 'pdfPath'],
+    });
+
+    if (!quote) {
+      res.status(404).json({ message: 'Quote not found' });
+      return;
+    }
+
+    if (!quote.pdfPath) {
+      res.status(404).json({
+        message: 'No PDF available for this quote. Submit the quote first to generate a PDF.',
+      });
+      return;
+    }
+
+    // Check the file actually exists on disk
+    const fs = await import('fs');
+    if (!fs.existsSync(quote.pdfPath)) {
+      res.status(404).json({ message: 'PDF file not found on server' });
+      return;
+    }
+
+    // Send the file as a downloadable attachment
+    res.download(quote.pdfPath, `${quote.quoteNumber}.pdf`);
+
+  } catch (error) {
+    next(error);
+  }
+};

@@ -37,13 +37,11 @@ module.exports = {
         allowNull: false,
       },
 
-      // All users of this internal tool are admins - only authorised Leapback staff can log in
-      // snake_case here because migrations write directly to the database
-      // (underscored: true in the model handles the camelCase → snake_case translation in app code only)
-      user_type: {
-        type:         Sequelize.ENUM('admin'),
+      // role system
+      role: {
+        type:         Sequelize.ENUM('chief_admin', 'admin', 'staff'),
         allowNull:    false,
-        defaultValue: 'admin',
+        defaultValue: 'staff',
       },
 
       // Controls the Active / Inactive status shown on the Settings staff table in the prototype

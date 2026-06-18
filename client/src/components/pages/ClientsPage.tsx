@@ -13,6 +13,7 @@ import {
   TrashIcon,
   PencilSimpleIcon,
   WarningIcon,
+  FileCsvIcon,
 } from '@phosphor-icons/react';
 import {
   getAllClients,
@@ -24,6 +25,10 @@ import type { ClientDetailResponse } from '../../api/clients.api';
 import { formatCurrency, formatDate, getQuoteStatusColor, getInvoiceStatusColor } from '../../utils/formatCurrency';
 import type { Client } from '../../types';
 import api from '../../lib/axios';
+import { downloadCSV } from '../../utils/exportUtils';
+import { useToast } from '../../stores/useToastStore';
+import { usePermissions } from '../../hooks/usePermissions';
+import Pagination from '../ui/Pagination';
 
 
 // --------------------------------------------------------------------------
@@ -338,6 +343,8 @@ const ClientDetail = ({ client, onEdit, onDelete, onClose }: ClientDetailProps) 
 // --------------------------------------------------------------------------
 const ClientsPage = () => {
   const queryClient = useQueryClient();
+const perms = usePermissions();
+    const toast = useToast();
 
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -345,6 +352,11 @@ const ClientsPage = () => {
   const [editClient, setEditClient] = useState<Client | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
+
+
+   const [currentPage, setCurrentPage] = useState(1);
+   const [itemsPerPage, setItemsPerPage] = useState(20);
+
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['clients', search],
@@ -356,14 +368,17 @@ const ClientsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       setDeleteTarget(null);
+      toast.success('Item deleted successfully');
       if (selectedClient?.id === deleteTarget?.id) setSelectedClient(null);
     },
+        onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const handleSuccess = () => {
+  const handleSuccess = (message: string) => {
     queryClient.invalidateQueries({ queryKey: ['clients'] });
     setShowAddModal(false);
     setEditClient(null);
+    toast.success(message);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -371,23 +386,64 @@ const ClientsPage = () => {
     setSearch(searchInput);
   };
 
-  const clients = data?.clients ?? [];
+  // const clients = data?.clients ?? [];
+  const allClients = data?.clients ?? [];
+    const totalCount = allClients.length;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+    
+    // Client-side pagination - slice the data
+    const paginatedClients = allClients.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+     const handleExportCSV = () => {
+        if (!allClients.length) return;
+        const rows = allClients.map(c => ({
+            'Client Name': c.clientName,
+            Email: c.email,
+            Phone: c.phone || '—',
+            'Contact Person': c.contactPerson || '—',
+            Address: c.address || '—',
+            'Created At': formatDate(c.createdAt),
+        }));
+        downloadCSV('clients-export', rows);
+        toast.success('Clients exported to CSV');
+    };
 
   return (
     <div className="space-y-5">
 
       {/* Header */}
       <div className="flex items-center justify-between">
+        
         <p className="text-white/40 text-sm">
           {data?.count ?? 0} client{(data?.count ?? 0) !== 1 ? 's' : ''}
         </p>
+
+                <div className="flex items-center gap-2">
+                    {/* Export — admin+ only */}
+               {perms.canExportClients && (
+                                      <button
+                                          onClick={handleExportCSV}
+                                          disabled={!allClients.length}
+                                          className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                                      >
+                                          <FileCsvIcon size={14} />
+                                          Export CSV
+                                      </button>
+                                  )}  
+                                   
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-[#E8A120] text-[#0A0F1E] text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#E8A120]/90 transition-colors"
+                            className="flex items-center gap-1.5 text-xs bg-[#E8A120] text-[#0A0F1E] font-semibold px-3 py-1.5 rounded-lg hover:bg-[#E8A120]/90 transition-colors"
+          // className="flex items-center gap-2 bg-[#E8A120] text-[#0A0F1E] text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#E8A120]/90 transition-colors"
         >
           <PlusIcon size={16} weight="bold" />
           Add Client
         </button>
+      </div>
+
       </div>
 
       {/* Search  */}
@@ -422,7 +478,7 @@ const ClientsPage = () => {
         <div className="text-center text-white/30 text-sm py-12">
           Failed to load clients. Please refresh.
         </div>
-      ) : clients.length === 0 ? (
+      ) : paginatedClients.length === 0 ? (
         <div className="text-center text-white/30 text-sm py-12 space-y-2">
           <p>No clients found.</p>
           <button
@@ -434,7 +490,7 @@ const ClientsPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {clients.map((client) => (
+          {paginatedClients.map((client) => (
             <div
               key={client.id}
               onClick={() => setSelectedClient(client)}
@@ -469,7 +525,8 @@ const ClientsPage = () => {
       {(showAddModal || editClient) && (
         <ClientModal
           client={editClient ?? undefined}
-          onSuccess={handleSuccess}
+          // onSuccess={handleSuccess}
+          onSuccess={() => handleSuccess('Item added successfully')}
           onClose={() => { setShowAddModal(false); setEditClient(null); }}
         />
       )}
@@ -514,6 +571,16 @@ const ClientsPage = () => {
           onClose={() => setSelectedClient(null)}
         />
       )}
+
+         {/* Pagination */}
+                          <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                              itemsPerPage={itemsPerPage}
+                              onItemsPerPageChange={setItemsPerPage}
+                              totalItems={totalCount}
+                          />
 
     </div>
   );

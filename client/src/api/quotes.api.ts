@@ -54,3 +54,25 @@ export const updateQuoteStatus = async (
   const res = await api.patch(`/quotes/${id}/status`, { status });
   return res.data;
 };
+
+
+// GET /quotes/:id/download
+// Fetches the quote PDF as a blob with the auth header attached,
+// then triggers a browser download.
+export const downloadQuotePdf = async (
+  id:          string,
+  quoteNumber: string
+): Promise<void> => {
+  const res = await api.get(`/quotes/${id}/download`, {
+    responseType: 'blob',
+  });
+
+  const url  = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+  const link = document.createElement('a');
+  link.href  = url;
+  link.setAttribute('download', `${quoteNumber}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

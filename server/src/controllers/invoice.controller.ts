@@ -134,6 +134,7 @@ export const getInvoiceById = async (req: Request, res: Response, next: NextFunc
 // "This will generate a PDF invoice and deduct inventory automatically"
 // ===================================================================================
 export const generateInvoice = async (req: Request, res: Response, next: NextFunction) => {
+  
   // Use a transaction - invoice creation, inventory deduction, and PDF generation
   // must all succeed together or all roll back
   const transaction = await sequelize.transaction();
@@ -491,3 +492,137 @@ export const resendInvoiceEmail = async (req: Request, res: Response, next: Next
    next(error);
   }
 }
+
+
+
+
+
+
+// ==================================================================================
+// GENERATE INVOICE FOR QUOTE (internal helper)
+// Called automatically when a quote is approved via updateQuoteStatus
+// Can also be called directly from the POST /invoices/generate/:quoteId route
+// Extracted so it can be reused without going through the HTTP layer
+// ==================================================================================
+
+export const generateInvoiceForQuote = async (
+  quoteId:   any,
+  createdBy: string
+): Promise<void> => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const quote = await Quote.findByPk(quoteId, {
+      include: [
+        { model: Client,    as: 'client' },
+        { model: QuoteItem, as: 'items'  },
+      ],
+    });
+
+    if (!quote) throw new Error('Quote not found');
+    if (quote.status !== 'approved') throw new Error('Quote is not approved');
+
+    // Prevent duplicate invoices
+    const existing = await Invoice.findOne({ where: { quoteId } });
+    if (existing) return; // already generated, silently skip
+
+    const client = (quote as any).client;
+    const items  = (quote as any).items;
+
+    // Deduct inventory stock
+    for (const item of items) {
+      if (item.itemType === 'product' && item.inventoryId) {
+        const inv = await Inventory.findOne({
+          where: { id: item.inventoryId },
+          lock:  transaction.LOCK.UPDATE,
+          transaction,
+        });
+        if (inv && inv.stockQty !== null) {
+          const newQty = Number(inv.stockQty) - Number(item.quantity);
+          if (newQty < 0) throw new Error(`Insufficient stock for "${inv.name}"`);
+          await inv.update({ stockQty: newQty }, { transaction });
+        }
+      }
+    }
+
+    const invoiceNumber = await nextInvoiceNumber();
+    const dueDate       = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    const dueDateString = dueDate.toISOString().split('T')[0];
+
+    const invoice = await Invoice.create(
+      {
+        invoiceNumber,
+        quoteId:    quote.id!,
+        clientId:   quote.clientId,
+        createdBy,
+        status:     'sent',
+        vatRate:    quote.vatRate,
+        subtotal:   quote.subtotal,
+        vatAmount:  quote.vatAmount,
+        grandTotal: quote.grandTotal,
+        pdfPath:    null,
+        dueDate:    dueDateString,
+        paidAt:     null,
+        sentAt:     null,
+      },
+      { transaction }
+    );
+
+    await InvoiceItem.bulkCreate(
+      items.map((item: any) => ({
+        invoiceId: invoice.id,
+        itemName:  item.itemName,
+        itemType:  item.itemType,
+        quantity:  Number(item.quantity),
+        unitPrice: Number(item.unitPrice),
+        lineTotal: Number(item.lineTotal),
+      })),
+      { transaction }
+    );
+
+    await transaction.commit();
+
+    // Generate PDF after commit
+    const pdfPath = await generatePDF({
+      type:      'invoice',
+      refNumber: invoice.invoiceNumber,
+      linkedRef: quote.quoteNumber,
+      client: {
+        clientName:    client.clientName,
+        contactPerson: client.contactPerson ?? null,
+        email:         client.email,
+        phone:         client.phone ?? null,
+      },
+      items: items.map((i: any) => ({
+        itemName:  i.itemName,
+        itemType:  i.itemType,
+        quantity:  Number(i.quantity),
+        unitPrice: Number(i.unitPrice),
+        lineTotal: Number(i.lineTotal),
+      })),
+      subtotal:   Number(invoice.subtotal),
+      vatRate:    invoice.vatRate   ? Number(invoice.vatRate)   : null,
+      vatAmount:  invoice.vatAmount ? Number(invoice.vatAmount) : null,
+      grandTotal: Number(invoice.grandTotal),
+      issueDate:  new Date().toLocaleDateString('en-NG'),
+      dueDate:    dueDate.toLocaleDateString('en-NG'),
+      status:     'sent',
+    });
+
+    await invoice.update({ pdfPath, sentAt: new Date() });
+
+    sendInvoiceEmail({
+      to:            client.email,
+      clientName:    client.clientName,
+      invoiceNumber: invoice.invoiceNumber,
+      pdfPath,
+      grandTotal:    Number(invoice.grandTotal),
+      dueDate:       dueDate.toLocaleDateString('en-NG'),
+    }).catch((err: Error) => console.error('Auto invoice email failed:', err.message));
+
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};

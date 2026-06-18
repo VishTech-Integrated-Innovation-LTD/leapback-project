@@ -37,6 +37,9 @@ import clientRoutes from './routes/client.routes';
 import inventoryRoutes from './routes/inventory.routes';
 import invoiceRoutes from './routes/invoice.routes';
 
+import dashboardRoutes from './routes/dashboard.routes'
+
+import companySettingsRoutes from './routes/company-settings.routes'
 
 // Import Global Error Handler
 import { errorHandler } from './middleware/error.middleware';
@@ -47,11 +50,22 @@ const app = express();
 
 
 // ======================
+// REQUEST LOGGING (for debugging) 
+// ======================
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+
+
+// ======================
 // MIDDLEWARE: REQUEST PARSING
 // ======================
 // Built-in middleware to parse incoming requests with JSON payloads
 // 10kb limit prevents oversized payload attacks
 app.use(express.json());
+
 
 
 // ======================
@@ -85,11 +99,26 @@ app.use('/inventory',  apiLimiter,  inventoryRoutes)
 app.use('/invoices',   apiLimiter,  invoiceRoutes)
 app.use('/invoices/:id/download',         downloadLimiter);
 
+app.use('/dashboard', apiLimiter, dashboardRoutes)
+
+app.use('/company-settings', apiLimiter, companySettingsRoutes)
+
 
 // ======================
 // GLOBAL ERROR HANDLER
 // ======================
 app.use(errorHandler);
+
+
+// ======================
+// 404 Handler
+// ======================
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Route not found: ${req.method} ${req.url}`,
+  });
+});
 
 
 // Export the configured Express app instance

@@ -8,11 +8,15 @@ import { User } from '../models';
 // LOCAL TYPES
 // --------------------------------------------
 
+export type UserRole = 'chief_admin' | 'admin' | 'staff';
+
+
 // Shape of the JWT payload - what gets encoded into the token on login
 export interface JwtPayload {
     id: string;
+    name: string;
     email: string;
-    userType: 'admin';
+    role: UserRole;
 }
 
 
@@ -25,7 +29,7 @@ export interface AuthRequest extends Request {
         id: string;
         name: string;
         email: string;
-        userType: 'admin';
+        role: UserRole;
         isActive: boolean;
         lastLoginAt: Date | null;
     }
@@ -81,8 +85,8 @@ const authenticate = async (
         // Attach the user to the request - available as req.user in all controllers
         // req.user = user.toJSON() as AuthRequest['user'];
 
-    // Cast to AuthRequest to attach user - TypeScript is satisfied
-    (req as AuthRequest).user = user.toJSON() as AuthRequest['user'];
+        // Cast to AuthRequest to attach user - TypeScript is satisfied
+        (req as AuthRequest).user = user.toJSON() as AuthRequest['user'];
 
         // Proceed to the next middleware or route handler
         next();

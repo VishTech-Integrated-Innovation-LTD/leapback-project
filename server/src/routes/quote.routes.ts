@@ -7,7 +7,8 @@ import {
     createQuote,
     updateQuote,
     submitQuote,
-    updateQuoteStatus
+    updateQuoteStatus,
+    downloadQuotePdf
 } from '../controllers/quote.controller';
 
 // Importing middleware
@@ -28,7 +29,7 @@ router.post('', createQuote);
 router.put('/:id', updateQuote);
 router.patch('/:id/submit', submitQuote);
 router.patch('/:id/status', updateQuoteStatus);
-
+router.get('/:id/download', downloadQuotePdf);
 
 
 

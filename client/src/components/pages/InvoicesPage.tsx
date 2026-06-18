@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
     MagnifyingGlassIcon,
     ArrowUpRightIcon,
+    FileCsvIcon,
 } from '@phosphor-icons/react';
 import { getAllInvoices } from '../../api/invoices.api';
 import {
@@ -11,6 +12,11 @@ import {
     formatDate,
     getInvoiceStatusColor,
 } from '../../utils/formatCurrency';
+
+import { usePermissions } from '../../hooks/usePermissions';
+import { downloadCSV, type InvoiceExportRow } from '../../utils/exportUtils';
+import Pagination from '../ui/Pagination';
+
 
 // --------------------------------------------------------------------------
 // STATUS FILTER TABS
@@ -27,10 +33,17 @@ const STATUS_TABS = [
 // --------------------------------------------------------------------------
 const InvoicesPage = () => {
     const navigate = useNavigate();
+        const perms       = usePermissions();
+    
 
     const [activeTab, setActiveTab] = useState('');
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
+
+// Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(20);
+
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['invoices', activeTab, search],
@@ -38,6 +51,10 @@ const InvoicesPage = () => {
             status: activeTab || undefined,
             search: search || undefined,
         }),
+         refetchOnMount: true,        // 
+    refetchOnWindowFocus: true,  // 
+        refetchInterval: 30_000,   // auto-refresh every 30 s (Issue #3)
+
     });
 
     const handleSearch = (e: React.FormEvent) => {
@@ -45,13 +62,46 @@ const InvoicesPage = () => {
         setSearch(searchInput);
     };
 
+     const handleExportCSV = () => {
+            if (!invoices.length) return;
+            const rows: InvoiceExportRow[] = invoices.map(inv => ({
+                'Invoice #':   inv.invoiceNumber,
+                Client:        inv.client?.clientName ?? '—',
+                'Quote Ref':   inv.quote?.quoteNumber  ?? '—',
+                'Amount (₦)':  Number(inv.grandTotal),
+                Status:        inv.status,
+                'Due Date':    inv.dueDate   ? formatDate(inv.dueDate)   : '—',
+                'Created At':  formatDate(inv.createdAt),
+            }));
+            downloadCSV('invoices-export', rows);
+        };
+
     const invoices = data?.invoices ?? [];
+
+       // Client-side pagination
+    const totalPages = Math.ceil(invoices.length / itemsPerPage);
+    const paginatedInvoices = invoices.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <div className="space-y-5">
 
             {/* Header  */}
-            <p className="text-white/40 text-sm">{data?.count ?? 0} total invoices</p>
+                <div className="flex items-center justify-between">
+                            <p className="text-white/40 text-sm">{data?.count ?? 0} total invoices</p>
+                            {perms.canExport && (
+                                <button
+                                    onClick={handleExportCSV}
+                                    disabled={!invoices.length}
+                                    className="flex items-center gap-2 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                                >
+                                    <FileCsvIcon size={14} />
+                                    Export CSV
+                                </button>
+                            )}
+                        </div>
 
             {/* Filters */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -112,7 +162,7 @@ const InvoicesPage = () => {
                     <div className="flex items-center justify-center h-48 text-white/30 text-sm">
                         Failed to load invoices. Please refresh.
                     </div>
-                ) : invoices.length === 0 ? (
+                ) : paginatedInvoices.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-48 text-white/30 text-sm gap-2">
                         <p>No invoices found.</p>
                         <p className="text-xs">Invoices are generated automatically when a quote is approved.</p>
@@ -133,7 +183,7 @@ const InvoicesPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {invoices.map((invoice) => (
+                            {paginatedInvoices.map((invoice) => (
                                 <tr
                                     key={invoice.id}
                                     className="border-b border-white/5 hover:bg-white/2 transition-colors"
@@ -178,6 +228,20 @@ const InvoicesPage = () => {
                 )}
 
             </div>
+
+  {/* Pagination - only show if there are items */}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={(limit) => {
+                    setItemsPerPage(limit);
+                    setCurrentPage(1);
+                }}
+                totalItems={invoices.length}
+            />
+
         </div>
     );
 };

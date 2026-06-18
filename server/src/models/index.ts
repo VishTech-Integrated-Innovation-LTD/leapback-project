@@ -7,6 +7,7 @@ import Quote       from './quote.model';
 import QuoteItem   from './quote-item.model';
 import Invoice     from './invoice.model';
 import InvoiceItem from './invoice-item.model';
+import CompanySettings from './company-settings.model';
 
 // ── Associations ──────────────────────────────────────────────────────────────
 // Defines all relationships between models in one central place.
@@ -58,7 +59,7 @@ InvoiceItem.belongsTo(Invoice, { foreignKey: 'invoiceId' });
 
 // Exporting all models from a single entry point
 // Import from here instead of individual model files wherever associations are needed
-export { User, Client, Inventory, Quote, QuoteItem, Invoice, InvoiceItem };
+export { User, Client, Inventory, Quote, QuoteItem, Invoice, InvoiceItem, CompanySettings };
 
 
 

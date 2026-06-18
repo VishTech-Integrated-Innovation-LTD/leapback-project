@@ -14,12 +14,36 @@ export interface DashboardData {
     pending:   number;
     approved:  number;
     rejected:  number;
+    // cancelled:     number;
+    // draft:     number;
     total:     number;
   };
   totalClients:  number;
   lowStockAlerts: InventoryItem[];
   recentQuotes:  Quote[];
 }
+
+
+export interface LowStockAlert {
+  id: string;
+  name: string;
+  stockQty: number;
+  lowStockThreshold: number;
+}
+
+
+export interface RevenuePoint {
+  month: string;
+  revenue: number
+}
+
+
+export interface QuoteStatusPoint {
+  status: string;
+  count: number;
+  fill: string;
+}
+
 
 
 export const getDashboardData = async (): Promise<DashboardData> => {
@@ -70,3 +94,9 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     recentQuotes,
   };
 };
+
+
+
+
+
+

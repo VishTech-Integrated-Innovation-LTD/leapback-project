@@ -6,31 +6,35 @@ import { jwtDecode } from 'jwt-decode';
 // TYPES
 // --------------------------------------------------------------------------------
 
+export type UserRole = 'chief_admin' | 'admin' | 'staff';
+
+
 // Shape of the decoded JWT payload - matches what the backend encodes on login
 interface JwtPayload {
-  id:       string;
-  email:    string;
-  userType: 'admin';
-  exp:      number;   // expiry timestamp - used to check if token is still valid
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  exp: number;   // expiry timestamp - used to check if token is still valid
 }
 
-// The logged-in user object stored in state
+// The logged-in user object stored in Zustand state
 export interface AuthUser {
-  id:       string;
-  name:     string;
-  email:    string;
-  userType: 'admin';
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
 }
 
 // Shape of the auth store
 interface AuthState {
-  user:    AuthUser | null;
-  token:   string | null;
+  user: AuthUser | null;
+  token: string | null;
   isAuthenticated: boolean;
 
   // Actions
-  login:   (token: string, user: AuthUser) => void;
-  logout:  () => void;
+  login: (token: string, user: AuthUser) => void;
+  logout: () => void;
   isTokenValid: () => boolean;
 }
 
@@ -42,8 +46,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user:            null,
-      token:           null,
+      user: null,
+      token: null,
       isAuthenticated: false,
 
       // Called after a successful login API response
@@ -60,6 +64,10 @@ export const useAuthStore = create<AuthState>()(
         set({ token: null, user: null, isAuthenticated: false });
       },
 
+      // Returns true only if:
+      //   1. A token exists
+      //   2. It hasn't expired
+      //   3. It contains a `role` field
       // Checks if the stored JWT is still valid (not expired)
       // Used by ProtectedRoute to decide whether to redirect to login
       isTokenValid: () => {
@@ -69,7 +77,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const decoded = jwtDecode<JwtPayload>(token);
           // exp is in seconds, Date.now() is in milliseconds
-          return decoded.exp * 1000 > Date.now();
+          const notExpired = decoded.exp * 1000 > Date.now();
+          const hasRole = Boolean(decoded.role);
+          return notExpired && hasRole;
         } catch {
           // If decoding fails the token is malformed - treat as invalid
           return false;
@@ -81,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
       // Only persist token and user - isAuthenticated is derived
       partialize: (state) => ({
         token: state.token,
-        user:  state.user,
+        user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
     }

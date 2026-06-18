@@ -1,11 +1,12 @@
 import { Model } from 'sequelize';
+export type UserRole = 'chief_admin' | 'admin' | 'staff';
 interface UserAttributes {
     sn?: number;
     id?: string;
     name: string;
     email: string;
     password: string;
-    userType: 'admin';
+    role: UserRole;
     isActive: boolean;
     lastLoginAt?: Date | null;
 }
