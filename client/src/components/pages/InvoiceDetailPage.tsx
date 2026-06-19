@@ -202,14 +202,14 @@ const InvoiceDetailPage = () => {
                       </button>
   
                       {/* Print */}
-                      <button
+                      {/* <button
                           onClick={() => window.print()}
               // onClick={handlePrint}
                           className="flex items-center gap-1.5 text-sm text-white/60 border border-white/10 hover:border-white/20 hover:text-white px-3 py-2 rounded-lg transition-colors"
                       >
                           <PrinterIcon size={15} />
                           Print
-                      </button>
+                      </button> */}
   
                       {/* Mark as Paid */}
                       {invoice.status === 'sent' && (

@@ -25,6 +25,7 @@ import type { User as UserType, CompanySettings, BankAccount } from '../../types
 
 type UserRole = 'chief_admin' | 'admin' | 'staff';
 
+
 // --------------------------------------------------------------------------
 // API ERROR HELPER
 // --------------------------------------------------------------------------
@@ -57,6 +58,7 @@ const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const { user: authUser } = useAuthStore();
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,9 +156,9 @@ const AddStaffModal = ({ onSuccess, onClose }: AddStaffModalProps) => {
               onChange={(e) => setForm(p => ({ ...p, role: e.target.value as UserRole }))}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#E8A120]/50"
             >
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-              {authUser?.role === 'chief_admin' && <option value="chief_admin">Chief Admin</option>}
+              <option value="staff" className='text-black'>Staff</option>
+              <option value="admin" className='text-black'>Admin</option>
+              {authUser?.role === 'chief_admin' && <option value="chief_admin" className='text-black'>Chief Admin</option>}
             </select>
           </div>
 
@@ -192,6 +194,8 @@ const EditStaffModal = ({ user, onSuccess, onClose }: EditStaffModalProps) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,12 +267,24 @@ const EditStaffModal = ({ user, onSuccess, onClose }: EditStaffModalProps) => {
             <div className="relative">
               <LockIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Min. 8 characters"
                 value={form.password}
                 onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#E8A120]/50"
               />
+                {/* Toggle password visibility */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword
+                    ? <EyeSlashIcon size={18} className="cursor-pointer" />
+                    : <EyeIcon size={18} className="cursor-pointer" />
+                  }
+                </button>
             </div>
           </div>
 
@@ -948,10 +964,6 @@ const SettingsPage = () => {
                     </div>
                     <p className="text-white/40 text-xs truncate">{user.email}</p>
                   </div>
-
-                  <span className="text-white/40 text-xs capitalize hidden md:block">
-                    {user.userType}
-                  </span>
 
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0
                     ${user.isActive

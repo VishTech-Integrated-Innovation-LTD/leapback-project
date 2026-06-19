@@ -341,24 +341,24 @@ export async function generatePDF(data: PDFData): Promise<string> {
       });
       
       // Default badge
-      if (account.isDefault) {
-        const badgeText = 'DEFAULT';
-        const badgeWidth = fontBold.widthOfTextAtSize(badgeText, 7);
-        page.drawRectangle({
-          x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 8,
-          y: innerY - 9,
-          width: badgeWidth + 8,
-          height: 12,
-          color: GOLD
-        });
-        page.drawText(badgeText, {
-          x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 12,
-          y: innerY - 2,
-          size: 7,
-          font: fontBold,
-          color: WHITE
-        });
-      }
+      // if (account.isDefault) {
+      //   const badgeText = 'DEFAULT';
+      //   const badgeWidth = fontBold.widthOfTextAtSize(badgeText, 7);
+      //   page.drawRectangle({
+      //     x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 8,
+      //     y: innerY - 9,
+      //     width: badgeWidth + 8,
+      //     height: 12,
+      //     color: GOLD
+      //   });
+      //   page.drawText(badgeText, {
+      //     x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 12,
+      //     y: innerY - 2,
+      //     size: 7,
+      //     font: fontBold,
+      //     color: WHITE
+      //   });
+      // }
       
       innerY -= 16;
       

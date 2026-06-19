@@ -1,11 +1,14 @@
 // --------------------------------------------------------------------------------
 // AUTH
 // --------------------------------------------------------------------------------
+
+export type UserRole = 'chief_admin' | 'admin' | 'staff';
+
 export interface User {
   id:          string;
   name:        string;
   email:       string;
-  userType:    'admin';
+  role:        UserRole;
   isActive:    boolean;
   lastLoginAt: string | null;
   createdAt?:  string;
