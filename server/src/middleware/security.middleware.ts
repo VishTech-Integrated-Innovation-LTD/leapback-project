@@ -30,13 +30,7 @@ export const corsConfig = cors({
     //   .split(',')
     //   .map(o => o.trim());
 
-     // Allowed origins
-    // const allowedOrigins = [
-    //   'https://leapback-quotation-project.vercel.app',   // current Vercel URL
-    //   'http://localhost:5173',                           // Vite default
-    //   'http://localhost:3000',
-    //   'http://localhost:8080'
-    // ];
+
 
     // Allow requests with no origin (e.g. Postman, server-to-server)
     if (!origin || allowedOrigins.includes(origin)) {
