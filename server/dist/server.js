@@ -8,7 +8,7 @@ const app_1 = __importDefault(require("./app"));
 // Determine the port from environment variable or fallback to 5000
 const PORT = process.env.PORT || 5000;
 // Basic health-check / welcome route (useful for testing & monitoring)
-app_1.default.get(['', '/', '/health', '/api'], (_req, res) => {
+app_1.default.get(['', '/', '/health', '/api'], (req, res) => {
     res.status(200).json({
         status: 'ok',
         message: 'Leapback backend is running fine!',
