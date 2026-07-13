@@ -40,15 +40,4 @@ export interface CompanyDetails {
         sortCode?: string;
     }>;
 }
-declare function getCompanySettingsFromDB(): Promise<CompanyDetails>;
-declare function getDefaultBankAccount(bankAccounts: CompanyDetails['bankAccounts']): {
-    id: string;
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    isDefault: boolean;
-    currency?: string;
-    sortCode?: string;
-} | null;
-export declare function generatePDF(data: PDFData): Promise<string>;
-export { getCompanySettingsFromDB, getDefaultBankAccount };
+export declare function generatePDFBuffer(data: PDFData): Promise<Uint8Array>;

@@ -24,10 +24,18 @@ const client_routes_1 = __importDefault(require("./routes/client.routes"));
 const inventory_routes_1 = __importDefault(require("./routes/inventory.routes"));
 const invoice_routes_1 = __importDefault(require("./routes/invoice.routes"));
 const dashboard_routes_1 = __importDefault(require("./routes/dashboard.routes"));
+const company_settings_routes_1 = __importDefault(require("./routes/company-settings.routes"));
 // Import Global Error Handler
 const error_middleware_1 = require("./middleware/error.middleware");
 // Create Express application instance
 const app = (0, express_1.default)();
+// ======================
+// REQUEST LOGGING (for debugging) 
+// ======================
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
 // ======================
 // MIDDLEWARE: REQUEST PARSING
 // ======================
@@ -60,10 +68,20 @@ app.use('/inventory', security_middleware_1.apiLimiter, inventory_routes_1.defau
 app.use('/invoices', security_middleware_1.apiLimiter, invoice_routes_1.default);
 app.use('/invoices/:id/download', security_middleware_1.downloadLimiter);
 app.use('/dashboard', security_middleware_1.apiLimiter, dashboard_routes_1.default);
+app.use('/company-settings', security_middleware_1.apiLimiter, company_settings_routes_1.default);
 // ======================
 // GLOBAL ERROR HANDLER
 // ======================
 app.use(error_middleware_1.errorHandler);
+// ======================
+// 404 Handler
+// ======================
+app.use((req, res) => {
+    res.status(404).json({
+        status: 'error',
+        message: `Route not found: ${req.method} ${req.url}`,
+    });
+});
 // Export the configured Express app instance
 exports.default = app;
 // // Importing express

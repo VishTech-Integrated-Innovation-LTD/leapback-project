@@ -1,45 +1,24 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generatePDF = generatePDF;
-exports.getCompanySettingsFromDB = getCompanySettingsFromDB;
-exports.getDefaultBankAccount = getDefaultBankAccount;
+exports.generatePDFBuffer = generatePDFBuffer;
+// pdf.service.ts - Complete working version
 const pdf_lib_1 = require("pdf-lib");
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const models_1 = require("../models"); // Adjust path to your models
+const models_1 = require("../models");
 // ------------------------------------------------------------------------------------
-// COLOURS - Leapback brand palette
-// Dark navy header/footer, gold accents - matches the Leapback website
+// COLOURS
 // ------------------------------------------------------------------------------------
-const NAVY = (0, pdf_lib_1.rgb)(0.039, 0.059, 0.118); // #0A0F1E - Leapback dark navy
-const GOLD = (0, pdf_lib_1.rgb)(0.910, 0.631, 0.125); // #E8A120 - Leapback gold/yellow accent
+const NAVY = (0, pdf_lib_1.rgb)(0.039, 0.059, 0.118);
+const GOLD = (0, pdf_lib_1.rgb)(0.910, 0.631, 0.125);
 const BLACK = (0, pdf_lib_1.rgb)(0, 0, 0);
 const GREY = (0, pdf_lib_1.rgb)(0.5, 0.5, 0.5);
 const WHITE = (0, pdf_lib_1.rgb)(1, 1, 1);
-const LIGHT = (0, pdf_lib_1.rgb)(0.95, 0.95, 0.95); // alternating row background
-// ------------------------------------------------------------------------------------
-// OUTPUT DIRECTORIES
-// Quotes saved to /pdfs/quotes, invoices saved to /pdfs/invoices
-// Kept separate for easier archiving and management
-// Directories are created on startup if they don't exist
-// ------------------------------------------------------------------------------------
-const QUOTES_DIR = path_1.default.join(__dirname, '../../pdfs/quotes');
-const INVOICES_DIR = path_1.default.join(__dirname, '../../pdfs/invoices');
-if (!fs_1.default.existsSync(QUOTES_DIR))
-    fs_1.default.mkdirSync(QUOTES_DIR, { recursive: true });
-if (!fs_1.default.existsSync(INVOICES_DIR))
-    fs_1.default.mkdirSync(INVOICES_DIR, { recursive: true });
+const LIGHT = (0, pdf_lib_1.rgb)(0.95, 0.95, 0.95);
 // ------------------------------------------------------------------------------------
 // HELPER - GET COMPANY SETTINGS FROM DATABASE
-// Fetches the company settings from the database
 // ------------------------------------------------------------------------------------
 async function getCompanySettingsFromDB() {
     try {
         let settings = await models_1.CompanySettings.findOne();
-        // If no settings exist, create default settings
         if (!settings) {
             settings = await models_1.CompanySettings.create({
                 companyName: process.env.COMPANY_NAME || 'Leapback',
@@ -60,7 +39,6 @@ async function getCompanySettingsFromDB() {
                 ],
             });
         }
-        // Convert undefined to null to match CompanyDetails type
         return {
             companyName: settings.companyName,
             companyAddress: settings.companyAddress ?? null,
@@ -72,7 +50,6 @@ async function getCompanySettingsFromDB() {
     }
     catch (error) {
         console.error('Error fetching company settings:', error);
-        // Fallback to environment variables if database fetch fails
         return {
             companyName: process.env.COMPANY_NAME || 'Leapback',
             companyAddress: process.env.COMPANY_ADDRESS || null,
@@ -94,55 +71,25 @@ async function getCompanySettingsFromDB() {
 }
 // ------------------------------------------------------------------------------------
 // HELPER - FORMAT CURRENCY
-// Naira symbol (₦) removed to avoid WinAnsi encoding error in pdf-lib
-// The currency context is clear from the document itself
 // ------------------------------------------------------------------------------------
 const fmt = (n) => 'NGN ' + Number(n).toLocaleString('en-NG', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
 });
 // ------------------------------------------------------------------------------------
-// HELPER - GET DEFAULT BANK ACCOUNT
-// Returns the default bank account or the first one if no default is set
+// GENERATE PDF BUFFER (NO FILE SAVING)
+// Returns Uint8Array that can be streamed to client
 // ------------------------------------------------------------------------------------
-function getDefaultBankAccount(bankAccounts) {
-    const defaultAccount = bankAccounts.find(acc => acc.isDefault);
-    return defaultAccount || (bankAccounts.length > 0 ? bankAccounts[0] : null);
-}
-// ------------------------------------------------------------------------------------
-// HELPER - FORMAT BANK DETAILS
-// Formats multiple bank accounts for display
-// ------------------------------------------------------------------------------------
-function formatBankDetails(bankAccounts) {
-    const lines = [];
-    for (const account of bankAccounts) {
-        const line = `${account.bankName} - ${account.accountNumber} (${account.accountName})${account.isDefault ? ' - Default' : ''}`;
-        lines.push(line);
-        if (account.sortCode) {
-            lines.push(`  Sort Code: ${account.sortCode}`);
-        }
-        if (account.currency && account.currency !== 'NGN') {
-            lines.push(`  Currency: ${account.currency}`);
-        }
-    }
-    return lines;
-}
-// ─────────────────────────────────────────────────────────────────────────────
-// GENERATE PDF
-// Produces a branded A4 PDF for a quote or invoice
-// Returns the file path of the saved PDF
-// ─────────────────────────────────────────────────────────────────────────────
-async function generatePDF(data) {
+async function generatePDFBuffer(data) {
     const { type, refNumber, linkedRef, client, items, subtotal, vatRate, vatAmount, grandTotal, issueDate, dueDate, status, } = data;
-    // Fetch company details from database
     const company = await getCompanySettingsFromDB();
     const doc = await pdf_lib_1.PDFDocument.create();
-    const page = doc.addPage([595, 842]); // A4 in points
+    const page = doc.addPage([595, 842]);
     const { width, height } = page.getSize();
     const fontBold = await doc.embedFont(pdf_lib_1.StandardFonts.HelveticaBold);
     const fontReg = await doc.embedFont(pdf_lib_1.StandardFonts.Helvetica);
     const fontItalic = await doc.embedFont(pdf_lib_1.StandardFonts.HelveticaOblique);
-    // ── Header bar - dark navy background ──────────────────────────────────────
+    // ── Header bar ──────────────────────────────────────────────────────────────
     page.drawRectangle({ x: 0, y: height - 80, width, height: 80, color: NAVY });
     page.drawText(company.companyName.toUpperCase(), {
         x: 40, y: height - 38, size: 18, font: fontBold, color: GOLD,
@@ -182,7 +129,6 @@ async function generatePDF(data) {
     // ── Items table ────────────────────────────────────────────────────────────
     y -= 90;
     const cols = { item: 40, type: 240, qty: 310, price: 390, total: 490 };
-    // Table header row
     page.drawRectangle({ x: 30, y: y - 4, width: width - 60, height: 22, color: NAVY });
     const headers = ['ITEM', 'TYPE', 'QTY', 'UNIT PRICE', 'TOTAL'];
     const colX = [cols.item, cols.type, cols.qty, cols.price, cols.total];
@@ -190,7 +136,6 @@ async function generatePDF(data) {
         page.drawText(h, { x: colX[i], y: y + 4, size: 9, font: fontBold, color: GOLD });
     });
     y -= 24;
-    // Table rows
     items.forEach((item, i) => {
         const rowColor = i % 2 === 0 ? WHITE : LIGHT;
         page.drawRectangle({ x: 30, y: y - 6, width: width - 60, height: 20, color: rowColor });
@@ -223,20 +168,15 @@ async function generatePDF(data) {
     });
     y -= 6;
     totRow('TOTAL DUE', fmt(grandTotal), true, true);
-    // ── Payment details (invoices only) - COMPLETELY REWRITTEN ─────────────────
+    // ── Payment details (invoices only) ──────────────────────────────────────
     if (type === 'invoice' && company.bankAccounts.length > 0) {
-        // Add some spacing
         y -= 24;
-        // Section header
         page.drawRectangle({ x: 40, y: y - 4, width: width - 80, height: 22, color: NAVY });
         page.drawText('PAYMENT DETAILS', { x: 45, y: y + 6, size: 10, font: fontBold, color: GOLD });
         y -= 30;
-        // Draw each bank account
-        for (const [index, account] of company.bankAccounts.entries()) {
-            // Card background with border
+        for (const account of company.bankAccounts) {
             const cardHeight = 70;
             const cardY = y - cardHeight + 8;
-            // Draw card background
             page.drawRectangle({
                 x: 45,
                 y: cardY,
@@ -246,103 +186,31 @@ async function generatePDF(data) {
                 borderColor: account.isDefault ? GOLD : GREY,
                 borderWidth: 0.5,
             });
-            // Gold left border for default account
             if (account.isDefault) {
-                page.drawRectangle({
-                    x: 45,
-                    y: cardY,
-                    width: 4,
-                    height: cardHeight,
-                    color: GOLD
-                });
+                page.drawRectangle({ x: 45, y: cardY, width: 4, height: cardHeight, color: GOLD });
             }
             let innerY = y - 8;
-            // Bank name (bold)
-            page.drawText(account.bankName, {
-                x: 55,
-                y: innerY,
-                size: 10,
-                font: fontBold,
-                color: NAVY
-            });
-            // Default badge
-            // if (account.isDefault) {
-            //   const badgeText = 'DEFAULT';
-            //   const badgeWidth = fontBold.widthOfTextAtSize(badgeText, 7);
-            //   page.drawRectangle({
-            //     x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 8,
-            //     y: innerY - 9,
-            //     width: badgeWidth + 8,
-            //     height: 12,
-            //     color: GOLD
-            //   });
-            //   page.drawText(badgeText, {
-            //     x: 55 + fontBold.widthOfTextAtSize(account.bankName, 10) + 12,
-            //     y: innerY - 2,
-            //     size: 7,
-            //     font: fontBold,
-            //     color: WHITE
-            //   });
-            // }
+            page.drawText(account.bankName, { x: 55, y: innerY, size: 10, font: fontBold, color: NAVY });
             innerY -= 16;
-            // Account number
-            page.drawText(`Account Number: ${account.accountNumber}`, {
-                x: 55,
-                y: innerY,
-                size: 8,
-                font: fontReg,
-                color: BLACK
-            });
+            page.drawText(`Account Number: ${account.accountNumber}`, { x: 55, y: innerY, size: 8, font: fontReg, color: BLACK });
             innerY -= 14;
-            // Account name
-            page.drawText(`Account Name: ${account.accountName}`, {
-                x: 55,
-                y: innerY,
-                size: 8,
-                font: fontReg,
-                color: BLACK
-            });
-            innerY -= 14;
-            // Sort code if available
+            page.drawText(`Account Name: ${account.accountName}`, { x: 55, y: innerY, size: 8, font: fontReg, color: BLACK });
             if (account.sortCode) {
-                page.drawText(`Sort Code: ${account.sortCode}`, {
-                    x: 55,
-                    y: innerY,
-                    size: 8,
-                    font: fontReg,
-                    color: GREY
-                });
+                innerY -= 14;
+                page.drawText(`Sort Code: ${account.sortCode}`, { x: 55, y: innerY, size: 8, font: fontReg, color: GREY });
             }
-            // Update Y position for next card
             y -= (cardHeight + 12);
         }
-        // Add payment instruction note
-        if (company.bankAccounts.length > 0) {
-            y -= 8;
-            page.drawText('Please use the invoice number as payment reference.', {
-                x: 45,
-                y,
-                size: 8,
-                font: fontItalic,
-                color: GREY
-            });
-        }
-    }
-    else if (type === 'invoice') {
-        // No bank accounts configured
-        y -= 24;
-        page.drawRectangle({ x: 40, y: y - 4, width: width - 80, height: 22, color: NAVY });
-        page.drawText('PAYMENT DETAILS', { x: 45, y: y + 6, size: 10, font: fontBold, color: GOLD });
-        y -= 24;
-        page.drawText('Payment details will be provided upon request.', {
+        y -= 8;
+        page.drawText('Please use the invoice number as payment reference.', {
             x: 45,
             y,
-            size: 9,
-            font: fontReg,
+            size: 8,
+            font: fontItalic,
             color: GREY
         });
     }
-    // ── Footer bar - dark navy background ──────────────────────────────────────
+    // ── Footer bar ──────────────────────────────────────────────────────────────
     const footerParts = [company.companyName];
     if (company.companyAddress)
         footerParts.push(company.companyAddress);
@@ -356,11 +224,7 @@ async function generatePDF(data) {
     if (company.invoiceFooter) {
         page.drawText(company.invoiceFooter, { x: 40, y: 12, size: 8, font: fontBold, color: GOLD });
     }
-    // ── Save to the correct directory based on document type ───────────────────
-    const outputDir = type === 'quote' ? QUOTES_DIR : INVOICES_DIR;
-    const fileName = `${type}-${refNumber}-${Date.now()}.pdf`;
-    const filePath = path_1.default.join(outputDir, fileName);
-    fs_1.default.writeFileSync(filePath, await doc.save());
-    return filePath;
+    // ── Return PDF bytes (NO FILE SAVING) ──────────────────────────────────────
+    return await doc.save();
 }
-//# sourceMappingURL=pdf.service.js.map
+//# sourceMappingURL=pdf-new.js.map
