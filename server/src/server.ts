@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000;
 
 
 // Basic health-check / welcome route (useful for testing & monitoring)
-app.get(['', '/', '/health', '/api'], (_req, res) => {
+app.get(['', '/', '/health', '/api'], (req, res) => {
   res.status(200).json({
     status: 'ok',
     message: 'Leapback backend is running fine!',
