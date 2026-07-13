@@ -26,12 +26,20 @@ export const helmetConfig = helmet({
 // ---------------------------------------------------------------------------------------------
 export const corsConfig = cors({
   origin: (origin, callback) => {
-    const allowed = (process.env.VITE_FRONTEND_URL ?? 'http://localhost:3000')
-      .split(',')
-      .map(o => o.trim());
+    // const allowed = (process.env.VITE_FRONTEND_URL ?? 'http://localhost:3000')
+    //   .split(',')
+    //   .map(o => o.trim());
+
+     // Allowed origins
+    const allowedOrigins = [
+      'https://leapback-quotation-project.vercel.app',   // Your current Vercel URL
+      'http://localhost:5173',                           // Vite default
+      'http://localhost:3000',
+      'http://localhost:8080'
+    ];
 
     // Allow requests with no origin (e.g. Postman, server-to-server)
-    if (!origin || allowed.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: origin ${origin} not allowed`));
