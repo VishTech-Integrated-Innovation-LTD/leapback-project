@@ -11,7 +11,6 @@ import {
   CalendarBlankIcon,
   ReceiptIcon,
   ShareNetworkIcon,
-  PrinterIcon,
 } from '@phosphor-icons/react';
 import {
   getInvoiceById,
