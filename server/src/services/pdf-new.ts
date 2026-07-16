@@ -308,5 +308,3 @@ export async function generatePDFBuffer(data: PDFData): Promise<Uint8Array> {
   return await doc.save();
 }
 
-
-

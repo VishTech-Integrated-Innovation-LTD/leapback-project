@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import AppRouter from "./routes/AppRouter"
+import { Analytics } from "@vercel/analytics/react";
 
 // Create a single QueryClient instance for the whole app
 // staleTime: 5 min — data is considered fresh for 5 minutes before refetching
@@ -19,6 +20,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AppRouter />
+      <Analytics />
     </QueryClientProvider>
   )
 }
